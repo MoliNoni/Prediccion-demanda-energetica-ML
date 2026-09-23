@@ -1,0 +1,32 @@
+{
+  "purpose": "Single final Test comparison after pre-Test candidate selection",
+  "selection_source": "Validation 2020-2021 and expanding windows 2016-2021 only",
+  "test_reuse_rule": "No further feature, model, or hyperparameter selection follows this result.",
+  "train_years": "2000-2019",
+  "test_years": "2022-2023",
+  "approved_hgb_features": {
+    "records": 730,
+    "metrics": {
+      "mae": 12729641.577878226,
+      "rmse": 14536831.858938435,
+      "smape": 6.058068084774613,
+      "wape": 5.932512455667646
+    }
+  },
+  "selected_short_memory_features": {
+    "added_features": [
+      "demand_at_reference_date",
+      "lag_2",
+      "lag_3",
+      "rolling_mean_3_including_reference",
+      "rolling_std_3_including_reference"
+    ],
+    "records": 730,
+    "metrics": {
+      "mae": 11416744.454016682,
+      "rmse": 13709622.725867353,
+      "smape": 5.391241302929252,
+      "wape": 5.32065088103743
+    }
+  }
+}

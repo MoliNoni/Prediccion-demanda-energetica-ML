@@ -1,0 +1,596 @@
+{
+  "sheet": "Demanda_Energia_SIN",
+  "columns": [
+    "Fecha",
+    "Demanda Energia SIN kWh",
+    "Generación kWh",
+    "Demanda No Atendida kWh",
+    "Exportaciones kWh",
+    "Importaciones kWh"
+  ],
+  "processed_files": 24,
+  "records": 8765,
+  "global_duplicate_dates": 0,
+  "global_missing_dates": [
+    "2015-12-31"
+  ],
+  "files": [
+    {
+      "file": "Demanda_Energia_SIN_2000.xlsx",
+      "year": 2000,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 366,
+      "date_min": "2000-01-01",
+      "date_max": "2000-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 0,
+        "Exportaciones kWh": 366,
+        "Importaciones kWh": 135
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2001.xlsx",
+      "year": 2001,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 365,
+      "date_min": "2001-01-01",
+      "date_max": "2001-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 0,
+        "Exportaciones kWh": 349,
+        "Importaciones kWh": 249
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2002.xlsx",
+      "year": 2002,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 365,
+      "date_min": "2002-01-01",
+      "date_max": "2002-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 0,
+        "Exportaciones kWh": 302,
+        "Importaciones kWh": 318
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2003.xlsx",
+      "year": 2003,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 365,
+      "date_min": "2003-01-01",
+      "date_max": "2003-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 0,
+        "Exportaciones kWh": 66,
+        "Importaciones kWh": 246
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2004.xlsx",
+      "year": 2004,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 366,
+      "date_min": "2004-01-01",
+      "date_max": "2004-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 0,
+        "Exportaciones kWh": 1,
+        "Importaciones kWh": 257
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2005.xlsx",
+      "year": 2005,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 365,
+      "date_min": "2005-01-01",
+      "date_max": "2005-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 0,
+        "Exportaciones kWh": 0,
+        "Importaciones kWh": 242
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2006.xlsx",
+      "year": 2006,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 365,
+      "date_min": "2006-01-01",
+      "date_max": "2006-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 0,
+        "Exportaciones kWh": 2,
+        "Importaciones kWh": 221
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2007.xlsx",
+      "year": 2007,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 365,
+      "date_min": "2007-01-01",
+      "date_max": "2007-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 0,
+        "Exportaciones kWh": 2,
+        "Importaciones kWh": 145
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2008.xlsx",
+      "year": 2008,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 366,
+      "date_min": "2008-01-01",
+      "date_max": "2008-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 0,
+        "Exportaciones kWh": 34,
+        "Importaciones kWh": 64
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2009.xlsx",
+      "year": 2009,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 365,
+      "date_min": "2009-01-01",
+      "date_max": "2009-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 1,
+        "Exportaciones kWh": 0,
+        "Importaciones kWh": 103
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2010.xlsx",
+      "year": 2010,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 365,
+      "date_min": "2010-01-01",
+      "date_max": "2010-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 0,
+        "Exportaciones kWh": 0,
+        "Importaciones kWh": 83
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2011.xls",
+      "year": 2011,
+      "format": "xls",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 365,
+      "date_min": "2011-01-01",
+      "date_max": "2011-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 0,
+        "Exportaciones kWh": 31,
+        "Importaciones kWh": 151
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2012.xls",
+      "year": 2012,
+      "format": "xls",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 366,
+      "date_min": "2012-01-01",
+      "date_max": "2012-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 0,
+        "Exportaciones kWh": 0,
+        "Importaciones kWh": 105
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2013.xlsx",
+      "year": 2013,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 365,
+      "date_min": "2013-01-01",
+      "date_max": "2013-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 24,
+        "Exportaciones kWh": 0,
+        "Importaciones kWh": 109
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2014.xlsx",
+      "year": 2014,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 365,
+      "date_min": "2014-01-01",
+      "date_max": "2014-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 40,
+        "Exportaciones kWh": 0,
+        "Importaciones kWh": 140
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2015.xlsx",
+      "year": 2015,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 364,
+      "date_min": "2015-01-01",
+      "date_max": "2015-12-30",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 37,
+        "Exportaciones kWh": 0,
+        "Importaciones kWh": 75
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares",
+        "Ausencia histórica conocida: 2015-12-31"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2016.xlsx",
+      "year": 2016,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 366,
+      "date_min": "2016-01-01",
+      "date_max": "2016-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 43,
+        "Exportaciones kWh": 2,
+        "Importaciones kWh": 7
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2017.xlsx",
+      "year": 2017,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN.rdl",
+      "records": 365,
+      "date_min": "2017-01-01",
+      "date_max": "2017-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 33,
+        "Exportaciones kWh": 6,
+        "Importaciones kWh": 3
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2018.xlsx",
+      "year": 2018,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN",
+      "records": 365,
+      "date_min": "2018-01-01",
+      "date_max": "2018-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 67,
+        "Exportaciones kWh": 2,
+        "Importaciones kWh": 18
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2019.xlsx",
+      "year": 2019,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN",
+      "records": 365,
+      "date_min": "2019-01-01",
+      "date_max": "2019-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 56,
+        "Exportaciones kWh": 128,
+        "Importaciones kWh": 0
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2020.xlsx",
+      "year": 2020,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN",
+      "records": 366,
+      "date_min": "2020-01-01",
+      "date_max": "2020-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 58,
+        "Exportaciones kWh": 152,
+        "Importaciones kWh": 15
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2021.xlsx",
+      "year": 2021,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN",
+      "records": 365,
+      "date_min": "2021-01-01",
+      "date_max": "2021-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 44,
+        "Exportaciones kWh": 55,
+        "Importaciones kWh": 40
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2022.xlsx",
+      "year": 2022,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN",
+      "records": 365,
+      "date_min": "2022-01-01",
+      "date_max": "2022-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 41,
+        "Exportaciones kWh": 9,
+        "Importaciones kWh": 54
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    },
+    {
+      "file": "Demanda_Energia_SIN_2023.xlsx",
+      "year": 2023,
+      "format": "xlsx",
+      "sheet": "Demanda_Energia_SIN",
+      "records": 365,
+      "date_min": "2023-01-01",
+      "date_max": "2023-12-31",
+      "nulls": {
+        "Fecha": 0,
+        "Demanda Energia SIN kWh": 0,
+        "Generación kWh": 0,
+        "Demanda No Atendida kWh": 43,
+        "Exportaciones kWh": 42,
+        "Importaciones kWh": 137
+      },
+      "duplicate_dates": 0,
+      "missing_dates": [],
+      "blockers": [],
+      "observations": [
+        "Existen valores nulos en columnas auxiliares"
+      ],
+      "status": "OBSERVATIONS"
+    }
+  ]
+}

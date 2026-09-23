@@ -1,0 +1,6 @@
+artifact_location: file:///app/mlruns/902517341806943104
+creation_time: 1789711835371
+experiment_id: '902517341806943104'
+last_update_time: 1789711835371
+lifecycle_stage: active
+name: energy-demand-forecast

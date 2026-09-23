@@ -1,0 +1,279 @@
+{
+  "purpose": "Pre-test, hypothesis-driven feature comparison for H+1",
+  "input_dataset": "data\\processed\\energy_demand_features_h1.parquet",
+  "historical_demand_input": "data\\interim\\energy_demand_daily.parquet",
+  "leakage_control": "Every added feature uses demand on or before reference_date; Test 2022-2023 is excluded.",
+  "results": [
+    {
+      "candidate": "approved_features",
+      "added_features": [],
+      "train_years": "2000-2019",
+      "validation_years": "2020, 2021",
+      "test_years_used": [],
+      "train_records": 7246,
+      "validation_records": 731,
+      "metrics": {
+        "mae": 5398355.698091254,
+        "rmse": 7114331.748211949,
+        "smape": 2.7949427589625606,
+        "wape": 2.7302004759584255
+      }
+    },
+    {
+      "candidate": "add_demand_at_reference_date",
+      "added_features": [
+        "demand_at_reference_date"
+      ],
+      "train_years": "2000-2019",
+      "validation_years": "2020, 2021",
+      "test_years_used": [],
+      "train_records": 7246,
+      "validation_records": 731,
+      "metrics": {
+        "mae": 4204760.941685349,
+        "rmse": 5952812.329661665,
+        "smape": 2.1667724992306594,
+        "wape": 2.1265438897143754
+      }
+    },
+    {
+      "candidate": "add_short_memory",
+      "added_features": [
+        "demand_at_reference_date",
+        "lag_2",
+        "lag_3",
+        "rolling_mean_3_including_reference",
+        "rolling_std_3_including_reference"
+      ],
+      "train_years": "2000-2019",
+      "validation_years": "2020, 2021",
+      "test_years_used": [],
+      "train_records": 7246,
+      "validation_records": 731,
+      "metrics": {
+        "mae": 4063377.2704481916,
+        "rmse": 5777398.449231574,
+        "smape": 2.0916451780118974,
+        "wape": 2.0550395672702426
+      }
+    }
+  ],
+  "expanding_yearly_stability": [
+    {
+      "candidate": "approved_features",
+      "added_features": [],
+      "train_years": "2000-2015",
+      "validation_years": "2016",
+      "test_years_used": [],
+      "train_records": 5814,
+      "validation_records": 337,
+      "metrics": {
+        "mae": 3789090.8879712443,
+        "rmse": 5455206.266537636,
+        "smape": 2.122041239834229,
+        "wape": 2.0904338928602484
+      }
+    },
+    {
+      "candidate": "add_short_memory",
+      "added_features": [
+        "demand_at_reference_date",
+        "lag_2",
+        "lag_3",
+        "rolling_mean_3_including_reference",
+        "rolling_std_3_including_reference"
+      ],
+      "train_years": "2000-2015",
+      "validation_years": "2016",
+      "test_years_used": [],
+      "train_records": 5814,
+      "validation_records": 337,
+      "metrics": {
+        "mae": 2838478.2154711625,
+        "rmse": 4299929.453833618,
+        "smape": 1.6006038152004094,
+        "wape": 1.565982775605414
+      }
+    },
+    {
+      "candidate": "approved_features",
+      "added_features": [],
+      "train_years": "2000-2016",
+      "validation_years": "2017",
+      "test_years_used": [],
+      "train_records": 6151,
+      "validation_records": 365,
+      "metrics": {
+        "mae": 3635803.2263767603,
+        "rmse": 5394520.995211619,
+        "smape": 2.014758429801391,
+        "wape": 1.9838650314114785
+      }
+    },
+    {
+      "candidate": "add_short_memory",
+      "added_features": [
+        "demand_at_reference_date",
+        "lag_2",
+        "lag_3",
+        "rolling_mean_3_including_reference",
+        "rolling_std_3_including_reference"
+      ],
+      "train_years": "2000-2016",
+      "validation_years": "2017",
+      "test_years_used": [],
+      "train_records": 6151,
+      "validation_records": 365,
+      "metrics": {
+        "mae": 2966217.8199449186,
+        "rmse": 4657415.053269051,
+        "smape": 1.6521544828318955,
+        "wape": 1.6185077800270713
+      }
+    },
+    {
+      "candidate": "approved_features",
+      "added_features": [],
+      "train_years": "2000-2017",
+      "validation_years": "2018",
+      "test_years_used": [],
+      "train_records": 6516,
+      "validation_records": 365,
+      "metrics": {
+        "mae": 6252308.399463663,
+        "rmse": 7394438.247640328,
+        "smape": 3.362925464259465,
+        "wape": 3.301318840132155
+      }
+    },
+    {
+      "candidate": "add_short_memory",
+      "added_features": [
+        "demand_at_reference_date",
+        "lag_2",
+        "lag_3",
+        "rolling_mean_3_including_reference",
+        "rolling_std_3_including_reference"
+      ],
+      "train_years": "2000-2017",
+      "validation_years": "2018",
+      "test_years_used": [],
+      "train_records": 6516,
+      "validation_records": 365,
+      "metrics": {
+        "mae": 4456336.716292509,
+        "rmse": 5594704.397811181,
+        "smape": 2.3869181727200477,
+        "wape": 2.3530170649821325
+      }
+    },
+    {
+      "candidate": "approved_features",
+      "added_features": [],
+      "train_years": "2000-2018",
+      "validation_years": "2019",
+      "test_years_used": [],
+      "train_records": 6881,
+      "validation_records": 365,
+      "metrics": {
+        "mae": 6108514.98423574,
+        "rmse": 7495342.595871272,
+        "smape": 3.1382313607345025,
+        "wape": 3.0999064020289175
+      }
+    },
+    {
+      "candidate": "add_short_memory",
+      "added_features": [
+        "demand_at_reference_date",
+        "lag_2",
+        "lag_3",
+        "rolling_mean_3_including_reference",
+        "rolling_std_3_including_reference"
+      ],
+      "train_years": "2000-2018",
+      "validation_years": "2019",
+      "test_years_used": [],
+      "train_records": 6881,
+      "validation_records": 365,
+      "metrics": {
+        "mae": 4992159.54776962,
+        "rmse": 6600515.5375973005,
+        "smape": 2.55663200468748,
+        "wape": 2.5333861637431996
+      }
+    },
+    {
+      "candidate": "approved_features",
+      "added_features": [],
+      "train_years": "2000-2019",
+      "validation_years": "2020",
+      "test_years_used": [],
+      "train_records": 7246,
+      "validation_records": 366,
+      "metrics": {
+        "mae": 4881628.610470533,
+        "rmse": 6770134.9042586,
+        "smape": 2.6386091646504917,
+        "wape": 2.5370938914481975
+      }
+    },
+    {
+      "candidate": "add_short_memory",
+      "added_features": [
+        "demand_at_reference_date",
+        "lag_2",
+        "lag_3",
+        "rolling_mean_3_including_reference",
+        "rolling_std_3_including_reference"
+      ],
+      "train_years": "2000-2019",
+      "validation_years": "2020",
+      "test_years_used": [],
+      "train_records": 7246,
+      "validation_records": 366,
+      "metrics": {
+        "mae": 3528901.2378822844,
+        "rmse": 5009941.262990883,
+        "smape": 1.8983356888207668,
+        "wape": 1.834050577905832
+      }
+    },
+    {
+      "candidate": "approved_features",
+      "added_features": [],
+      "train_years": "2000-2020",
+      "validation_years": "2021",
+      "test_years_used": [],
+      "train_records": 7612,
+      "validation_records": 365,
+      "metrics": {
+        "mae": 5115275.193237378,
+        "rmse": 6544026.036401334,
+        "smape": 2.5507706629806166,
+        "wape": 2.5191051737010497
+      }
+    },
+    {
+      "candidate": "add_short_memory",
+      "added_features": [
+        "demand_at_reference_date",
+        "lag_2",
+        "lag_3",
+        "rolling_mean_3_including_reference",
+        "rolling_std_3_including_reference"
+      ],
+      "train_years": "2000-2020",
+      "validation_years": "2021",
+      "test_years_used": [],
+      "train_records": 7612,
+      "validation_records": 365,
+      "metrics": {
+        "mae": 3963919.9430720275,
+        "rmse": 5792828.012083265,
+        "smape": 1.9744790629879057,
+        "wape": 1.9521004949901488
+      }
+    }
+  ]
+}

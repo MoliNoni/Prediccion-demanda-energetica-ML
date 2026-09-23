@@ -1,0 +1,15 @@
+artifact_uri: file:///app/mlruns/902517341806943104/656f39c2308e4aa5ba67c23c1fbb3429/artifacts
+end_time: 1790132843464
+entry_point_name: ''
+experiment_id: '902517341806943104'
+lifecycle_stage: active
+run_id: 656f39c2308e4aa5ba67c23c1fbb3429
+run_name: phase-10-candidate-hgb-v2
+run_uuid: 656f39c2308e4aa5ba67c23c1fbb3429
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1790132838266
+status: 3
+tags: []
+user_id: User

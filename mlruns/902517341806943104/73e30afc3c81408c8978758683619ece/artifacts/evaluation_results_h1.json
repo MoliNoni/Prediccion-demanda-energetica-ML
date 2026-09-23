@@ -1,0 +1,50 @@
+{
+  "input_predictions": "data\\processed\\model_predictions_h1.parquet",
+  "target": "target_h1",
+  "selection_metric": "MAE",
+  "tie_break_metric": "RMSE",
+  "complementary_metrics": [
+    "sMAPE",
+    "WAPE"
+  ],
+  "selected_model_by_validation": "HistGradientBoostingRegressor",
+  "test_used_for_selection": false,
+  "results": [
+    {
+      "model": "baseline",
+      "split": "validation",
+      "mae": 10149700.14391248,
+      "rmse": 13640042.373714447,
+      "smape": 5.2540217507118285,
+      "wape": 5.133177158656492,
+      "records": 731
+    },
+    {
+      "model": "RandomForestRegressor",
+      "split": "validation",
+      "mae": 7110082.760916153,
+      "rmse": 9373312.500963656,
+      "smape": 3.6566260856913404,
+      "wape": 3.595900756376749,
+      "records": 731
+    },
+    {
+      "model": "HistGradientBoostingRegressor",
+      "split": "validation",
+      "mae": 5398355.698091254,
+      "rmse": 7114331.748211949,
+      "smape": 2.7949427589625606,
+      "wape": 2.7302004759584255,
+      "records": 731
+    },
+    {
+      "model": "HistGradientBoostingRegressor",
+      "split": "test",
+      "mae": 12729641.577878226,
+      "rmse": 14536831.858938435,
+      "smape": 6.058068084774613,
+      "wape": 5.932512455667646,
+      "records": 730
+    }
+  ]
+}

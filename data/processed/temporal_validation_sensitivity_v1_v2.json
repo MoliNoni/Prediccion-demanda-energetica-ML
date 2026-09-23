@@ -1,0 +1,87 @@
+{
+  "purpose": "Phase 11 temporal sensitivity of fixed HGB v1 versus v2",
+  "official_split_preserved": {
+    "train": "2000-2019",
+    "validation": "2020-2021",
+    "test": "2022-2023"
+  },
+  "alternative_split": {
+    "train": "2015-2019",
+    "validation": "2022",
+    "test": "2023",
+    "excluded_extraordinary_period": "2020-2021"
+  },
+  "test_used_for_selection": false,
+  "results": [
+    {
+      "split": "validation",
+      "year": 2022,
+      "records": 365,
+      "v1_hgb": {
+        "mae": 9466858.25508303,
+        "rmse": 10624468.560169205,
+        "smape": 4.602613529877664,
+        "wape": 4.507609374441921
+      },
+      "v2_hgb": {
+        "mae": 7129905.45877537,
+        "rmse": 8305808.637941789,
+        "smape": 3.458672927376959,
+        "wape": 3.3948779857989546
+      },
+      "difference": {
+        "mae": {
+          "absolute_v2_minus_v1": -2336952.7963076597,
+          "relative_percent": -24.685621494891212
+        },
+        "rmse": {
+          "absolute_v2_minus_v1": -2318659.922227416,
+          "relative_percent": -21.82377319953676
+        },
+        "smape": {
+          "absolute_v2_minus_v1": -1.143940602500705,
+          "relative_percent": -24.854152864994305
+        },
+        "wape": {
+          "absolute_v2_minus_v1": -1.112731388642966,
+          "relative_percent": -24.685621494891212
+        }
+      }
+    },
+    {
+      "split": "test",
+      "year": 2023,
+      "records": 365,
+      "v1_hgb": {
+        "mae": 16812558.124463152,
+        "rmse": 18357722.660976,
+        "smape": 7.911241964465633,
+        "wape": 7.672450457070198
+      },
+      "v2_hgb": {
+        "mae": 15701001.659320466,
+        "rmse": 17479115.179195847,
+        "smape": 7.372977433092433,
+        "wape": 7.165189048906849
+      },
+      "difference": {
+        "mae": {
+          "absolute_v2_minus_v1": -1111556.465142686,
+          "relative_percent": -6.611465411235147
+        },
+        "rmse": {
+          "absolute_v2_minus_v1": -878607.4817801528,
+          "relative_percent": -4.786037451409243
+        },
+        "smape": {
+          "absolute_v2_minus_v1": -0.5382645313732004,
+          "relative_percent": -6.803793055387324
+        },
+        "wape": {
+          "absolute_v2_minus_v1": -0.5072614081633491,
+          "relative_percent": -6.611465411235147
+        }
+      }
+    }
+  ]
+}

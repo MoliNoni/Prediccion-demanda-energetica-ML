@@ -1,0 +1,153 @@
+{
+  "purpose": "Pre-test validation sensitivity of the approved HGB configuration",
+  "input_dataset": "data\\processed\\energy_demand_features_h1.parquet",
+  "test_years_used": [],
+  "current_validation_window": [
+    {
+      "train_years": "2000-2019",
+      "validation_year": 2020,
+      "train_records": 7246,
+      "validation_records": 366,
+      "HistGradientBoostingRegressor": {
+        "mae": 4881628.610470533,
+        "rmse": 6770134.9042586,
+        "smape": 2.6386091646504917,
+        "wape": 2.5370938914481975
+      },
+      "weekly_persistence_baseline": {
+        "mae": 10059055.67661205,
+        "rmse": 13556599.793485526,
+        "smape": 5.330570174738954,
+        "wape": 5.2279209967203615
+      }
+    },
+    {
+      "train_years": "2000-2019",
+      "validation_year": 2021,
+      "train_records": 7246,
+      "validation_records": 365,
+      "HistGradientBoostingRegressor": {
+        "mae": 5916498.476362988,
+        "rmse": 7443507.16716045,
+        "smape": 2.951704664491923,
+        "wape": 2.9136813483083976
+      },
+      "weekly_persistence_baseline": {
+        "mae": 10240592.95221921,
+        "rmse": 13723204.121920167,
+        "smape": 5.177263604975042,
+        "wape": 5.043155981482068
+      }
+    }
+  ],
+  "expanding_yearly_windows": [
+    {
+      "train_years": "2000-2015",
+      "validation_year": 2016,
+      "train_records": 5814,
+      "validation_records": 337,
+      "HistGradientBoostingRegressor": {
+        "mae": 3789090.8879712443,
+        "rmse": 5455206.266537636,
+        "smape": 2.122041239834229,
+        "wape": 2.0904338928602484
+      },
+      "weekly_persistence_baseline": {
+        "mae": 10639578.820771517,
+        "rmse": 14264649.984639697,
+        "smape": 6.053366029571914,
+        "wape": 5.869834435301001
+      }
+    },
+    {
+      "train_years": "2000-2016",
+      "validation_year": 2017,
+      "train_records": 6151,
+      "validation_records": 365,
+      "HistGradientBoostingRegressor": {
+        "mae": 3635803.2263767603,
+        "rmse": 5394520.995211619,
+        "smape": 2.014758429801391,
+        "wape": 1.9838650314114785
+      },
+      "weekly_persistence_baseline": {
+        "mae": 10558147.214164378,
+        "rmse": 14141350.10086339,
+        "smape": 5.939657348735671,
+        "wape": 5.761021086817393
+      }
+    },
+    {
+      "train_years": "2000-2017",
+      "validation_year": 2018,
+      "train_records": 6516,
+      "validation_records": 365,
+      "HistGradientBoostingRegressor": {
+        "mae": 6252308.399463663,
+        "rmse": 7394438.247640328,
+        "smape": 3.362925464259465,
+        "wape": 3.301318840132155
+      },
+      "weekly_persistence_baseline": {
+        "mae": 10341126.678821933,
+        "rmse": 14118852.325285437,
+        "smape": 5.645384267616723,
+        "wape": 5.460280291982503
+      }
+    },
+    {
+      "train_years": "2000-2018",
+      "validation_year": 2019,
+      "train_records": 6881,
+      "validation_records": 365,
+      "HistGradientBoostingRegressor": {
+        "mae": 6108514.98423574,
+        "rmse": 7495342.595871272,
+        "smape": 3.1382313607345025,
+        "wape": 3.0999064020289175
+      },
+      "weekly_persistence_baseline": {
+        "mae": 10467650.973589052,
+        "rmse": 14153731.697827384,
+        "smape": 5.471338979874434,
+        "wape": 5.31205020385044
+      }
+    },
+    {
+      "train_years": "2000-2019",
+      "validation_year": 2020,
+      "train_records": 7246,
+      "validation_records": 366,
+      "HistGradientBoostingRegressor": {
+        "mae": 4881628.610470533,
+        "rmse": 6770134.9042586,
+        "smape": 2.6386091646504917,
+        "wape": 2.5370938914481975
+      },
+      "weekly_persistence_baseline": {
+        "mae": 10059055.67661205,
+        "rmse": 13556599.793485526,
+        "smape": 5.330570174738954,
+        "wape": 5.2279209967203615
+      }
+    },
+    {
+      "train_years": "2000-2020",
+      "validation_year": 2021,
+      "train_records": 7612,
+      "validation_records": 365,
+      "HistGradientBoostingRegressor": {
+        "mae": 5115275.193237378,
+        "rmse": 6544026.036401334,
+        "smape": 2.5507706629806166,
+        "wape": 2.5191051737010497
+      },
+      "weekly_persistence_baseline": {
+        "mae": 10240592.95221921,
+        "rmse": 13723204.121920167,
+        "smape": 5.177263604975042,
+        "wape": 5.043155981482068
+      }
+    }
+  ]
+}

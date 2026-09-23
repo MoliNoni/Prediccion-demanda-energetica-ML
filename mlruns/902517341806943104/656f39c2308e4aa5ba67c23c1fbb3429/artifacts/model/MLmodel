@@ -1,0 +1,52 @@
+artifact_path: model
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.12.10
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.9.1
+is_signature_from_type_hint: false
+mlflow_version: 2.22.5
+model_size_bytes: 754398
+model_uuid: c135cf18139746278adb66af5e7982aa
+prompts: null
+run_id: 656f39c2308e4aa5ba67c23c1fbb3429
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "lag_1", "required": true}, {"type": "double",
+    "name": "lag_7", "required": true}, {"type": "double", "name": "lag_14", "required":
+    true}, {"type": "double", "name": "lag_28", "required": true}, {"type": "double",
+    "name": "rolling_mean_7", "required": true}, {"type": "double", "name": "rolling_std_7",
+    "required": true}, {"type": "double", "name": "rolling_mean_14", "required": true},
+    {"type": "double", "name": "rolling_std_14", "required": true}, {"type": "double",
+    "name": "rolling_mean_28", "required": true}, {"type": "double", "name": "rolling_std_28",
+    "required": true}, {"type": "integer", "name": "weekday", "required": true}, {"type":
+    "integer", "name": "day_of_month", "required": true}, {"type": "integer", "name":
+    "month", "required": true}, {"type": "long", "name": "iso_week", "required": true},
+    {"type": "integer", "name": "day_of_year", "required": true}, {"type": "integer",
+    "name": "weekend", "required": true}, {"type": "double", "name": "weekday_sin",
+    "required": true}, {"type": "double", "name": "weekday_cos", "required": true},
+    {"type": "double", "name": "month_sin", "required": true}, {"type": "double",
+    "name": "month_cos", "required": true}, {"type": "double", "name": "day_of_year_sin",
+    "required": true}, {"type": "double", "name": "day_of_year_cos", "required": true},
+    {"type": "double", "name": "demand_at_reference_date", "required": true}, {"type":
+    "double", "name": "lag_2", "required": true}, {"type": "double", "name": "lag_3",
+    "required": true}, {"type": "double", "name": "rolling_mean_3_including_reference",
+    "required": true}, {"type": "double", "name": "rolling_std_3_including_reference",
+    "required": true}]'
+  outputs: '[{"type": "double", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-09-23 03:07:18.293391'

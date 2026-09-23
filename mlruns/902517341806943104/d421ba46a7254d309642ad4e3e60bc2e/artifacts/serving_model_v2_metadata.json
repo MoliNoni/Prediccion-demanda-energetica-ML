@@ -1,0 +1,151 @@
+{
+  "model_name": "HistGradientBoostingRegressor",
+  "model_version": "1.1.0",
+  "horizon": 1,
+  "candidate": true,
+  "promotion_status": "not_promoted",
+  "feature_set_name": "energy_demand_h1",
+  "feature_set_version": "v2",
+  "predictor_columns": [
+    "lag_1",
+    "lag_7",
+    "lag_14",
+    "lag_28",
+    "rolling_mean_7",
+    "rolling_std_7",
+    "rolling_mean_14",
+    "rolling_std_14",
+    "rolling_mean_28",
+    "rolling_std_28",
+    "weekday",
+    "day_of_month",
+    "month",
+    "iso_week",
+    "day_of_year",
+    "weekend",
+    "weekday_sin",
+    "weekday_cos",
+    "month_sin",
+    "month_cos",
+    "day_of_year_sin",
+    "day_of_year_cos",
+    "demand_at_reference_date",
+    "lag_2",
+    "lag_3",
+    "rolling_mean_3_including_reference",
+    "rolling_std_3_including_reference"
+  ],
+  "python_version": "3.12.10",
+  "scikit_learn_version": "1.9.1",
+  "mlflow_version": "2.22.5",
+  "joblib_version": "1.6.0",
+  "hyperparameters": {
+    "categorical_features": "from_dtype",
+    "early_stopping": "auto",
+    "interaction_cst": null,
+    "l2_regularization": 0.0,
+    "learning_rate": 0.05,
+    "loss": "squared_error",
+    "max_bins": 255,
+    "max_depth": null,
+    "max_features": 1.0,
+    "max_iter": 200,
+    "max_leaf_nodes": 31,
+    "min_samples_leaf": 20,
+    "monotonic_cst": null,
+    "n_iter_no_change": 10,
+    "quantile": null,
+    "random_state": 42,
+    "scoring": "loss",
+    "tol": 1e-07,
+    "validation_fraction": 0.1,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "dataset": "data\\processed\\energy_demand_features_h1_v2.parquet",
+  "periods": {
+    "train": "2000-2019",
+    "validation": "2020-2021",
+    "test": "2022-2023"
+  },
+  "evaluation": {
+    "purpose": "Controlled v1 versus v2 HGB comparison",
+    "selection_rule": "v2 features were fixed before the single Phase 11 Test comparison",
+    "test_used_for_selection": false,
+    "results": [
+      {
+        "split": "validation",
+        "records": 731,
+        "v1_hgb": {
+          "mae": 5398355.698091254,
+          "rmse": 7114331.748211949,
+          "smape": 2.7949427589625606,
+          "wape": 2.7302004759584255
+        },
+        "v2_hgb": {
+          "mae": 4063377.2704481916,
+          "rmse": 5777398.449231574,
+          "smape": 2.0916451780118974,
+          "wape": 2.0550395672702426
+        },
+        "difference": {
+          "mae": {
+            "absolute_v2_minus_v1": -1334978.427643062,
+            "relative_percent": -24.729352830808885
+          },
+          "rmse": {
+            "absolute_v2_minus_v1": -1336933.2989803748,
+            "relative_percent": -18.792113529375225
+          },
+          "smape": {
+            "absolute_v2_minus_v1": -0.7032975809506632,
+            "relative_percent": -25.16321948617353
+          },
+          "wape": {
+            "absolute_v2_minus_v1": -0.6751609086881829,
+            "relative_percent": -24.7293528308089
+          }
+        }
+      },
+      {
+        "split": "test",
+        "records": 730,
+        "v1_hgb": {
+          "mae": 12729641.577878226,
+          "rmse": 14536831.858938435,
+          "smape": 6.058068084774613,
+          "wape": 5.932512455667646
+        },
+        "v2_hgb": {
+          "mae": 11416744.454016682,
+          "rmse": 13709622.725867353,
+          "smape": 5.391241302929252,
+          "wape": 5.32065088103743
+        },
+        "difference": {
+          "mae": {
+            "absolute_v2_minus_v1": -1312897.1238615438,
+            "relative_percent": -10.31370063194173
+          },
+          "rmse": {
+            "absolute_v2_minus_v1": -827209.1330710817,
+            "relative_percent": -5.690436135590615
+          },
+          "smape": {
+            "absolute_v2_minus_v1": -0.6668267818453604,
+            "relative_percent": -11.007251363206978
+          },
+          "wape": {
+            "absolute_v2_minus_v1": -0.6118615746302156,
+            "relative_percent": -10.313700631941726
+          }
+        }
+      }
+    ]
+  },
+  "feature_pipeline_sha256": "4c35f2062f762b8dd4800bc06e265854e559da1d9b5910633c368819a4b9d78e",
+  "feature_contract_sha256": "e1ee42b31925249ef53164bdb30afc2c05aa4ae1f378805e0ec351a885cf6d58",
+  "run_id": "d421ba46a7254d309642ad4e3e60bc2e",
+  "tracking_uri": "file:///C:/Users/User/Desktop/Sistema%20de%20predicci%C3%B3n%20de%20demanda%20energ%C3%A9tica/mlruns",
+  "model_uri": "runs:/d421ba46a7254d309642ad4e3e60bc2e/model"
+}

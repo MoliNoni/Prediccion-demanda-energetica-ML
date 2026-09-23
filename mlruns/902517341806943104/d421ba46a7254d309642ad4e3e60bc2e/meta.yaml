@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/User/Desktop/Sistema%20de%20predicci%C3%B3n%20de%20demanda%20energ%C3%A9tica/mlruns/902517341806943104/d421ba46a7254d309642ad4e3e60bc2e/artifacts
+end_time: 1790132395250
+entry_point_name: ''
+experiment_id: '902517341806943104'
+lifecycle_stage: active
+run_id: d421ba46a7254d309642ad4e3e60bc2e
+run_name: phase-10-candidate-hgb-v2
+run_uuid: d421ba46a7254d309642ad4e3e60bc2e
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1790132387915
+status: 3
+tags: []
+user_id: User

@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/User/Desktop/Sistema%20de%20predicci%C3%B3n%20de%20demanda%20energ%C3%A9tica/mlruns/902517341806943104/fee1893a558a474c8d4673a4bce971cc/artifacts
+end_time: 1789711908832
+entry_point_name: ''
+experiment_id: '902517341806943104'
+lifecycle_stage: active
+run_id: fee1893a558a474c8d4673a4bce971cc
+run_name: phase-5-existing-results
+run_uuid: fee1893a558a474c8d4673a4bce971cc
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1789711908582
+status: 3
+tags: []
+user_id: User

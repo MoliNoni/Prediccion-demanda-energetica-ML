@@ -1,0 +1,45 @@
+{
+  "purpose": "Pre-test model comparison using the stable short-memory features",
+  "hypothesis": "ExtraTrees may reduce remaining nonlinear seasonal error through more diverse tree splits than the current tree ensembles.",
+  "train_years": "2000-2019",
+  "validation_years": "2020-2021",
+  "test_years_used": [],
+  "features_added": [
+    "demand_at_reference_date",
+    "lag_2",
+    "lag_3",
+    "rolling_mean_3_including_reference",
+    "rolling_std_3_including_reference"
+  ],
+  "train_records": 7246,
+  "validation_records": 731,
+  "results": [
+    {
+      "model": "HistGradientBoostingRegressor",
+      "metrics": {
+        "mae": 4063377.2704481916,
+        "rmse": 5777398.449231574,
+        "smape": 2.0916451780118974,
+        "wape": 2.0550395672702426
+      }
+    },
+    {
+      "model": "RandomForestRegressor",
+      "metrics": {
+        "mae": 4544864.892191542,
+        "rmse": 6508940.331915881,
+        "smape": 2.345422410581443,
+        "wape": 2.2985503338017232
+      }
+    },
+    {
+      "model": "ExtraTreesRegressor",
+      "metrics": {
+        "mae": 4751223.591490514,
+        "rmse": 6286391.589914824,
+        "smape": 2.428389045326348,
+        "wape": 2.402915561021452
+      }
+    }
+  ]
+}
