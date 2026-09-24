@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     environment: str = Field(default="development", pattern="^(development|testing|production)$")
     log_level: str = Field(default="INFO", pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
     database_url: str
-    frontend_origin: str = "http://localhost:5173"
+    frontend_origin: str = Field(default="http://localhost:5173", alias="FRONTEND_ORIGIN")
     model_registry_uri: str | None = None
     api_secret_key: str | None = None
 
