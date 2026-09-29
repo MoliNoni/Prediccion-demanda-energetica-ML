@@ -38,23 +38,23 @@ Total Demand GWh PY =
     CALCULATE ( [Total Demand GWh], SAMEPERIODLASTYEAR ( dim_date[date] ) )
 
 Demand YoY % =
-    VAR Current = [Total Demand GWh]
-    VAR Previous = [Total Demand GWh PY]
+    VAR CurrentValue = [Total Demand GWh]
+    VAR PreviousValue = [Total Demand GWh PY]
     RETURN
-        DIVIDE ( Current - Previous, Previous )
+        DIVIDE ( CurrentValue - PreviousValue, PreviousValue )
 
 // Rolling averages of DAILY demand. AVERAGEX skips days without data (blank).
 Demand 7d Avg GWh =
     VAR LastDate = MAX ( dim_date[date] )
-    VAR Window = DATESINPERIOD ( dim_date[date], LastDate, -7, DAY )
+    VAR DateWindow = DATESINPERIOD ( dim_date[date], LastDate, -7, DAY )
     RETURN
-        AVERAGEX ( Window, [Total Demand GWh] )
+        AVERAGEX ( DateWindow, [Total Demand GWh] )
 
 Demand 28d Avg GWh =
     VAR LastDate = MAX ( dim_date[date] )
-    VAR Window = DATESINPERIOD ( dim_date[date], LastDate, -28, DAY )
+    VAR DateWindow = DATESINPERIOD ( dim_date[date], LastDate, -28, DAY )
     RETURN
-        AVERAGEX ( Window, [Total Demand GWh] )
+        AVERAGEX ( DateWindow, [Total Demand GWh] )
 
 // Same weekday one year earlier = shift by 364 days (52 weeks), so a Monday compares
 // with a Monday. Holidays still move around, use the is_colombian_holiday slicer.
@@ -62,10 +62,10 @@ Demand vs Same Weekday LY GWh =
     CALCULATE ( [Total Demand GWh], DATEADD ( dim_date[date], -364, DAY ) )
 
 Demand vs Same Weekday LY % =
-    VAR Current = [Total Demand GWh]
-    VAR Previous = [Demand vs Same Weekday LY GWh]
+    VAR CurrentValue = [Total Demand GWh]
+    VAR PreviousValue = [Demand vs Same Weekday LY GWh]
     RETURN
-        DIVIDE ( Current - Previous, Previous )
+        DIVIDE ( CurrentValue - PreviousValue, PreviousValue )
 
 
 // ------------------------------------------------------------------ Market: price
@@ -77,10 +77,10 @@ Avg Spot Price PY =
     CALCULATE ( [Avg Spot Price], SAMEPERIODLASTYEAR ( dim_date[date] ) )
 
 Price YoY % =
-    VAR Current = [Avg Spot Price]
-    VAR Previous = [Avg Spot Price PY]
+    VAR CurrentValue = [Avg Spot Price]
+    VAR PreviousValue = [Avg Spot Price PY]
     RETURN
-        DIVIDE ( Current - Previous, Previous )
+        DIVIDE ( CurrentValue - PreviousValue, PreviousValue )
 
 // Demand-weighted price: each day's price weighted by that day's demand, so high-demand
 // days count more than a simple average does.
@@ -222,9 +222,9 @@ Accuracy % =
 
 Rolling 30d WAPE =
     VAR LastDate = MAX ( dim_date[date] )
-    VAR Window = DATESINPERIOD ( dim_date[date], LastDate, -30, DAY )
+    VAR DateWindow = DATESINPERIOD ( dim_date[date], LastDate, -30, DAY )
     RETURN
-        CALCULATE ( [Model WAPE], Window )
+        CALCULATE ( [Model WAPE], DateWindow )
 
 
 // ------------------------------------------------------------------ What-if: price shock
