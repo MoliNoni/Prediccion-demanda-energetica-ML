@@ -1,0 +1,42 @@
+{
+  "name": "Ventriloc Editorial",
+  "dataColors": [
+    "#ff682c",
+    "#202020",
+    "#816729",
+    "#b8a36a",
+    "#8a8a8a",
+    "#ffb08f",
+    "#4a4a4a",
+    "#d9cfb6"
+  ],
+  "background": "#ffffff",
+  "foreground": "#202020",
+  "tableAccent": "#ff682c",
+  "good": "#816729",
+  "neutral": "#8a8a8a",
+  "bad": "#ff682c",
+  "maximum": "#ff682c",
+  "center": "#efefef",
+  "minimum": "#202020",
+  "textClasses": {
+    "callout": { "fontSize": 32, "fontFace": "Inter", "color": "#202020" },
+    "title": { "fontSize": 14, "fontFace": "Inter", "color": "#202020" },
+    "header": { "fontSize": 12, "fontFace": "Inter", "color": "#202020" },
+    "label": { "fontSize": 10, "fontFace": "Inter", "color": "#4a4a4a" }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [{ "color": { "solid": { "color": "#ffffff" } }, "transparency": 0 }],
+        "border": [{ "show": false }],
+        "title": [{ "fontColor": { "solid": { "color": "#202020" } }, "fontFamily": "Inter" }]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [{ "color": { "solid": { "color": "#efefef" } }, "transparency": 0 }]
+      }
+    }
+  }
+}

@@ -1,0 +1,288 @@
+// =====================================================================================
+// Energy demand report - semantic model measures (Power BI Desktop, Import mode)
+// =====================================================================================
+// Publish to web rule: every measure must live in the semantic model, never as a
+// report-level measure. Create a blank table named `_Measures` (Enter data -> one empty
+// column, then delete the column) and paste each measure below into it. Home folders
+// are suggested in the `// Folder:` comments (Model view -> Properties -> Display folder).
+//
+// Prerequisites
+//   - dim_date is marked as the date table (Table tools -> Mark as date table -> [date]).
+//   - Relationships (all many-to-one, single direction, dim -> fact):
+//       dim_date[date_key]  -> fact_demand_daily[date_key]
+//       dim_date[date_key]  -> fact_market_daily[date_key]
+//       dim_date[date_key]  -> fact_prediction[date_key]
+//       dim_model[model_key]-> fact_prediction[model_key]
+//       dim_enso_monthly[year_month] -> dim_date[year_month]   (one-to-many, month grain)
+//   - Auto date/time disabled (File -> Options -> Current file -> Data load).
+//   - Units: source columns are kWh; measures report GWh (kWh / 1,000,000).
+//   - 2015-12-31 has no demand record; rolling averages ignore blank days on purpose.
+// =====================================================================================
+
+
+// ------------------------------------------------------------------ Base measures
+// Folder: 01 Demand
+Total Demand GWh =
+    DIVIDE ( SUM ( fact_demand_daily[demand_kwh] ), 1000000 )
+
+Total Generation GWh =
+    DIVIDE ( SUM ( fact_demand_daily[generation_kwh] ), 1000000 )
+
+Demand Days =
+    COUNTROWS ( fact_demand_daily )
+
+
+// ------------------------------------------------------------------ Time intelligence
+// Folder: 01 Demand
+Total Demand GWh PY =
+    CALCULATE ( [Total Demand GWh], SAMEPERIODLASTYEAR ( dim_date[date] ) )
+
+Demand YoY % =
+    VAR Current = [Total Demand GWh]
+    VAR Previous = [Total Demand GWh PY]
+    RETURN
+        DIVIDE ( Current - Previous, Previous )
+
+// Rolling averages of DAILY demand. AVERAGEX skips days without data (blank).
+Demand 7d Avg GWh =
+    VAR LastDate = MAX ( dim_date[date] )
+    VAR Window = DATESINPERIOD ( dim_date[date], LastDate, -7, DAY )
+    RETURN
+        AVERAGEX ( Window, [Total Demand GWh] )
+
+Demand 28d Avg GWh =
+    VAR LastDate = MAX ( dim_date[date] )
+    VAR Window = DATESINPERIOD ( dim_date[date], LastDate, -28, DAY )
+    RETURN
+        AVERAGEX ( Window, [Total Demand GWh] )
+
+// Same weekday one year earlier = shift by 364 days (52 weeks), so a Monday compares
+// with a Monday. Holidays still move around, use the is_colombian_holiday slicer.
+Demand vs Same Weekday LY GWh =
+    CALCULATE ( [Total Demand GWh], DATEADD ( dim_date[date], -364, DAY ) )
+
+Demand vs Same Weekday LY % =
+    VAR Current = [Total Demand GWh]
+    VAR Previous = [Demand vs Same Weekday LY GWh]
+    RETURN
+        DIVIDE ( Current - Previous, Previous )
+
+
+// ------------------------------------------------------------------ Market: price
+// Folder: 02 Market
+Avg Spot Price =
+    AVERAGE ( fact_market_daily[spot_price_cop_kwh] )
+
+Avg Spot Price PY =
+    CALCULATE ( [Avg Spot Price], SAMEPERIODLASTYEAR ( dim_date[date] ) )
+
+Price YoY % =
+    VAR Current = [Avg Spot Price]
+    VAR Previous = [Avg Spot Price PY]
+    RETURN
+        DIVIDE ( Current - Previous, Previous )
+
+// Demand-weighted price: each day's price weighted by that day's demand, so high-demand
+// days count more than a simple average does.
+Demand-weighted Spot Price =
+    VAR Weighted =
+        SUMX (
+            VALUES ( dim_date[date_key] ),
+            [Total Demand GWh] * [Avg Spot Price]
+        )
+    VAR TotalDemand =
+        SUMX (
+            FILTER ( VALUES ( dim_date[date_key] ), NOT ISBLANK ( [Avg Spot Price] ) ),
+            [Total Demand GWh]
+        )
+    RETURN
+        DIVIDE ( Weighted, TotalDemand )
+
+// Pearson correlation between DAILY price and DAILY demand inside the current filter
+// context (use it on a monthly or yearly axis; each point is computed over its days).
+// r = (n*Sxy - Sx*Sy) / SQRT( (n*Sxx - Sx^2) * (n*Syy - Sy^2) )
+Price-Demand Correlation =
+    VAR Daily =
+        FILTER (
+            ADDCOLUMNS (
+                VALUES ( dim_date[date_key] ),
+                "@x", [Total Demand GWh],
+                "@y", [Avg Spot Price]
+            ),
+            NOT ISBLANK ( [@x] ) && NOT ISBLANK ( [@y] )
+        )
+    VAR N = COUNTROWS ( Daily )
+    VAR Sx = SUMX ( Daily, [@x] )
+    VAR Sy = SUMX ( Daily, [@y] )
+    VAR Sxy = SUMX ( Daily, [@x] * [@y] )
+    VAR Sxx = SUMX ( Daily, [@x] * [@x] )
+    VAR Syy = SUMX ( Daily, [@y] * [@y] )
+    VAR Numerator = N * Sxy - Sx * Sy
+    VAR Denominator = SQRT ( ( N * Sxx - Sx * Sx ) * ( N * Syy - Sy * Sy ) )
+    RETURN
+        IF ( N > 2, DIVIDE ( Numerator, Denominator ) )
+
+
+// ------------------------------------------------------------------ Market: hydrology
+// Folder: 02 Market
+// Last known reservoir level inside the period (a level, so never sum or average it).
+Reservoir % =
+    LASTNONBLANKVALUE (
+        dim_date[date],
+        CALCULATE ( MAX ( fact_market_daily[reservoir_pct] ) )
+    )
+
+Inflows GWh =
+    DIVIDE ( SUM ( fact_market_daily[inflows_kwh] ), 1000000 )
+
+Avg Daily Inflows GWh =
+    DIVIDE ( SUM ( fact_market_daily[inflows_kwh] ), 1000000 * COUNTROWS ( fact_market_daily ) )
+
+// Current average daily inflows against the multi-year average of the same calendar
+// month(s). > 1 = wetter than usual. Only the year-level filters are removed.
+Inflows vs Historical =
+    VAR HistoricalAvg =
+        CALCULATE (
+            [Avg Daily Inflows GWh],
+            REMOVEFILTERS (
+                dim_date[year],
+                dim_date[year_month],
+                dim_date[quarter],
+                dim_date[iso_week],
+                dim_date[date],
+                dim_date[date_key]
+            ),
+            VALUES ( dim_date[month] )
+        )
+    RETURN
+        DIVIDE ( [Avg Daily Inflows GWh], HistoricalAvg )
+
+// ENSO: average Oceanic Nino Index of the months in context (via dim_enso_monthly).
+Avg ONI =
+    AVERAGE ( dim_enso_monthly[oni_anom] )
+
+
+// ------------------------------------------------------------------ System balance
+// Folder: 03 Balance
+Exports GWh =
+    DIVIDE ( SUM ( fact_demand_daily[exports_kwh] ), 1000000 )
+
+Imports GWh =
+    DIVIDE ( SUM ( fact_demand_daily[imports_kwh] ), 1000000 )
+
+Net Imports GWh =
+    [Imports GWh] - [Exports GWh]
+
+Unserved Energy GWh =
+    DIVIDE ( SUM ( fact_demand_daily[unserved_kwh] ), 1000000 )
+
+// Share of total demand that could not be served.
+Unserved Energy Share =
+    DIVIDE (
+        SUM ( fact_demand_daily[unserved_kwh] ),
+        SUM ( fact_demand_daily[demand_kwh] ) + SUM ( fact_demand_daily[unserved_kwh] )
+    )
+
+
+// ------------------------------------------------------------------ Model performance
+// Folder: 04 Model
+// Only rows where the actual value is already known are scored (actual_kwh not blank).
+Scored Predictions =
+    COUNT ( fact_prediction[actual_kwh] )
+
+Model MAE GWh =
+    DIVIDE (
+        SUMX (
+            FILTER ( fact_prediction, NOT ISBLANK ( fact_prediction[actual_kwh] ) ),
+            ABS ( fact_prediction[predicted_kwh] - fact_prediction[actual_kwh] )
+        ),
+        [Scored Predictions] * 1000000
+    )
+
+// Weighted absolute percentage error: sum|error| / sum(actual). Robust to low-demand days.
+Model WAPE =
+    VAR Scored = FILTER ( fact_prediction, NOT ISBLANK ( fact_prediction[actual_kwh] ) )
+    RETURN
+        DIVIDE (
+            SUMX ( Scored, ABS ( fact_prediction[predicted_kwh] - fact_prediction[actual_kwh] ) ),
+            SUMX ( Scored, fact_prediction[actual_kwh] )
+        )
+
+// Signed bias: > 0 means the model over-forecasts on average.
+Model Bias % =
+    VAR Scored = FILTER ( fact_prediction, NOT ISBLANK ( fact_prediction[actual_kwh] ) )
+    RETURN
+        DIVIDE (
+            SUMX ( Scored, fact_prediction[predicted_kwh] - fact_prediction[actual_kwh] ),
+            SUMX ( Scored, fact_prediction[actual_kwh] )
+        )
+
+Accuracy % =
+    IF ( NOT ISBLANK ( [Model WAPE] ), 1 - [Model WAPE] )
+
+Rolling 30d WAPE =
+    VAR LastDate = MAX ( dim_date[date] )
+    VAR Window = DATESINPERIOD ( dim_date[date], LastDate, -30, DAY )
+    RETURN
+        CALCULATE ( [Model WAPE], Window )
+
+
+// ------------------------------------------------------------------ What-if: price shock
+// Folder: 05 Scenario
+// Create with Modeling -> New parameter -> Numeric range: min -30, max 30, step 5,
+// default 0, "Add slicer". Power BI generates the two objects below; they are
+// reproduced here so the model can be rebuilt from this file.
+//
+//   'Price shock %' = GENERATESERIES ( -30, 30, 5 )
+//   'Price shock % Value' = SELECTEDVALUE ( 'Price shock %'[Price shock %], 0 )
+//
+// Simple constant-elasticity scenario: %change in demand = elasticity * %change in price.
+// Short-run price elasticity of electricity demand is small; the default of -0.10 is an
+// ASSUMPTION for illustration, not an estimate from this dataset. Expose it as a second
+// what-if parameter if the audience should tweak it.
+Price Elasticity Assumption =
+    -0.10
+
+Scenario Price =
+    [Avg Spot Price] * ( 1 + 'Price shock %'[Price shock % Value] / 100 )
+
+Scenario Demand GWh =
+    VAR Shock = 'Price shock %'[Price shock % Value] / 100
+    RETURN
+        [Total Demand GWh] * ( 1 + [Price Elasticity Assumption] * Shock )
+
+Scenario Demand Delta GWh =
+    [Scenario Demand GWh] - [Total Demand GWh]
+
+
+// ------------------------------------------------------------------ Field parameter
+// Lets a single visual switch its metric. Create with Modeling -> New parameter ->
+// Fields, tick the measures below, "Add slicer". Equivalent DAX of the generated table:
+//
+// Metric Selector = {
+//     ( "Demand (GWh)",          NAMEOF ( '_Measures'[Total Demand GWh] ),          0 ),
+//     ( "Avg spot price (COP/kWh)", NAMEOF ( '_Measures'[Avg Spot Price] ),         1 ),
+//     ( "Reservoir (%)",         NAMEOF ( '_Measures'[Reservoir %] ),               2 ),
+//     ( "Inflows (GWh)",         NAMEOF ( '_Measures'[Inflows GWh] ),               3 ),
+//     ( "Net imports (GWh)",     NAMEOF ( '_Measures'[Net Imports GWh] ),           4 )
+// }
+//
+// Tip: sort the display column by the third (order) column so the slicer keeps this order.
+
+
+// ------------------------------------------------------------------ Calculation group
+// Not creatable in Power BI Desktop's UI: build it in Tabular Editor (external tool)
+// and save back to the open model. Calculation group `Time Intelligence` with column
+// `Period` and these items (ordinal in brackets). Set "Discourage implicit measures".
+//
+//   [0] Current   :  SELECTEDMEASURE ()
+//   [1] YTD       :  CALCULATE ( SELECTEDMEASURE (), DATESYTD ( dim_date[date] ) )
+//   [2] PY        :  CALCULATE ( SELECTEDMEASURE (), SAMEPERIODLASTYEAR ( dim_date[date] ) )
+//   [3] YoY %     :  VAR Cur = SELECTEDMEASURE ()
+//                    VAR Prev = CALCULATE ( SELECTEDMEASURE (), SAMEPERIODLASTYEAR ( dim_date[date] ) )
+//                    RETURN DIVIDE ( Cur - Prev, Prev )
+//                    Format string expression:  "0.0%"
+//
+// Do not apply it to ratio measures that already embed time logic (Demand YoY %,
+// Rolling 30d WAPE): use a measure filter on the calculation item, or keep those
+// measures out of the visual that uses the group.

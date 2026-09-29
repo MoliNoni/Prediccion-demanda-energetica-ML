@@ -54,3 +54,6 @@ desktop.ini
 README.md
 # Local design reference (not versioned)
 DESIGN.md
+
+# Power BI export output (regenerable)
+data/powerbi/
