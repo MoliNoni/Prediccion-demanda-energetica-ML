@@ -110,10 +110,23 @@ def test_fact_market_merges_series_and_converts_reservoir_to_percent() -> None:
     assert fact["inflows_kwh"].iloc[1] == 5.0e7
 
 
-def test_fact_market_rejects_out_of_range_reservoir() -> None:
+def test_fact_market_rejects_negative_reservoir() -> None:
     empty = pd.DataFrame({"date": [date(2023, 3, 1)], "value": [1.0]})
     with pytest.raises(SchemaValidationError):
-        build_fact_market_daily(empty, empty.assign(value=1.5), empty)
+        build_fact_market_daily(empty, empty.assign(value=-0.1), empty)
+
+
+def test_fact_market_nulls_reservoir_above_full_capacity(caplog: pytest.LogCaptureFixture) -> None:
+    # XM reports 140-149% for January 2000, an artefact at the start of the series.
+    days = [date(2000, 1, 31), date(2000, 2, 1)]
+    price = pd.DataFrame({"date": days, "value": [30.0, 31.0]})
+    reservoir = pd.DataFrame({"date": days, "value": [1.40638, 0.74938]})
+
+    fact = build_fact_market_daily(price, reservoir, price)
+
+    assert pd.isna(fact["reservoir_pct"].iloc[0])
+    assert fact["reservoir_pct"].iloc[1] == pytest.approx(74.938)
+    assert "1 reservoir values above 100%" in caplog.text
 
 
 def test_enso_phase_thresholds_and_dimension() -> None:

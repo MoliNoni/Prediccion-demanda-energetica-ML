@@ -1,5 +1,6 @@
 """Pure transformations that build the star-schema tables for Power BI."""
 
+import logging
 from datetime import date, timedelta
 
 import pandas as pd
@@ -21,6 +22,8 @@ MONTH_NAMES_ES = (
     "Noviembre",
     "Diciembre",
 )
+logger = logging.getLogger(__name__)
+
 WEEKDAY_NAMES_ES = ("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
 SCHEMAS: dict[str, tuple[list[str], list[str]]] = {
@@ -189,8 +192,14 @@ def build_fact_market_daily(
         .merge(inflows.rename(columns={"value": "inflows_kwh"}), on="date", how="outer")
     )
     merged["date_key"] = to_date_key(merged["date"]) if len(merged) else pd.Series(dtype="int64")
-    if not merged["reservoir_pct"].dropna().between(0, 100).all():
-        raise SchemaValidationError("reservoir_pct outside 0..100")
+    if (merged["reservoir_pct"].dropna() < 0).any():
+        raise SchemaValidationError("reservoir_pct below 0")
+    # XM publishes 140-149% for January 2000, which is physically impossible (the next day
+    # reads 75%). Blank those days instead of aborting the whole export.
+    above_capacity = merged["reservoir_pct"] > 100
+    if above_capacity.any():
+        logger.warning("Blanking %s reservoir values above 100%%", int(above_capacity.sum()))
+        merged.loc[above_capacity, "reservoir_pct"] = pd.NA
     out = merged[SCHEMAS["fact_market_daily"][0]].sort_values("date_key", ignore_index=True)
     return validate_table("fact_market_daily", out)
 

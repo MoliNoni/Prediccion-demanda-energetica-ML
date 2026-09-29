@@ -43,6 +43,9 @@ def test_export_writes_star_schema_and_survives_unreachable_database(tmp_path: P
     assert manifest["tables"]["fact_market_daily"]["rows"] == 1
     assert manifest["tables"]["dim_enso_monthly"]["rows"] == 1
     assert manifest["tables"]["fact_prediction"]["rows"] == 0
-    header = (out / "fact_prediction.csv").read_text(encoding="utf-8").strip()
+    raw = (out / "fact_prediction.csv").read_bytes()
+    # The BOM makes Power BI detect UTF-8 instead of Windows-1252 (keeps "Niña", "Miércoles").
+    assert raw.startswith(b"\xef\xbb\xbf")
+    header = raw.decode("utf-8-sig").strip()
     assert header == "date_key,model_key,predicted_kwh,actual_kwh"
     assert json.loads((out / "manifest.json").read_text(encoding="utf-8"))["tables"]

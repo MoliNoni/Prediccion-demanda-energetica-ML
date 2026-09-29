@@ -49,7 +49,8 @@ def _safe_load_predictions(
 
 def write_csv(frame: pd.DataFrame, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    frame.to_csv(path, index=False, encoding="utf-8", lineterminator="\n")
+    # utf-8-sig writes a BOM so Power BI does not guess Windows-1252 for accented names.
+    frame.to_csv(path, index=False, encoding="utf-8-sig", lineterminator="\n")
 
 
 def run_export(
