@@ -97,8 +97,6 @@ const en = {
   pbiPage4Desc: "Demand, reservoirs and inflows on a single timeline.",
   pbiPage5Title: "Model performance",
   pbiPage5Desc: "Stored forecasts compared with actual demand.",
-  pbiCaption:
-    "The report is public (Power BI Publish to web) and its data refreshes are cached for about one hour.",
   pbiOpen: "Open the report in a new tab",
   backendUnavailable: "Backend unavailable",
   predictionUnavailable: "Prediction unavailable",
@@ -206,8 +204,6 @@ const es: Record<TranslationKey, string> = {
   pbiPage4Desc: "Demanda, embalses y aportes en una sola línea de tiempo.",
   pbiPage5Title: "Desempeño del modelo",
   pbiPage5Desc: "Pronósticos almacenados frente a la demanda real.",
-  pbiCaption:
-    "El informe es público (Publicar en la web de Power BI) y sus datos se actualizan con una caché de aproximadamente una hora.",
   pbiOpen: "Abrir el informe en una pestaña nueva",
   backendUnavailable: "Backend no disponible",
   predictionUnavailable: "Pronóstico no disponible",

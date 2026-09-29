@@ -58,14 +58,13 @@ export function PowerBiReport({ t, embedUrl }: PowerBiReportProps) {
         )}
       </div>
 
-      <p className="caption">
-        {t("pbiCaption")}{" "}
-        {embedUrl && (
+      {embedUrl && (
+        <p className="caption">
           <a className="link" href={embedUrl} target="_blank" rel="noreferrer">
             {t("pbiOpen")}
           </a>
-        )}
-      </p>
+        </p>
+      )}
     </div>
   );
 }
