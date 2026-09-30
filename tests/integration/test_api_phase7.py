@@ -1,10 +1,11 @@
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
+from uuid import uuid4
 
 import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, insert
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import StaticPool
 
@@ -13,7 +14,7 @@ from api.main import app
 from application.historical_demand import HistoricalDemandQuery
 from application.prediction import PredictionService
 from database.repositories import EnergyPredictionRepository, ModelRepository
-from database.schema import metadata
+from database.schema import energy_predictions_table, metadata
 from models.serving import MlflowModelLoader
 
 
@@ -133,6 +134,42 @@ def test_prediction_listing_filters_pagination_and_null_actual(api_client) -> No
     )
     assert client.get("/api/v1/predictions?page=0").status_code == 422
     assert client.get("/api/v1/predictions").json()["items"] != []
+
+
+def test_prediction_listing_order_option(api_client) -> None:
+    client, engine, _ = api_client
+    model_id = create_model(engine)
+    rows = [
+        (date(2010, 1, 1), datetime(2026, 1, 3, tzinfo=UTC)),
+        (date(2023, 1, 2), datetime(2026, 1, 1, tzinfo=UTC)),
+        (date(2023, 1, 1), datetime(2026, 1, 1, tzinfo=UTC)),
+    ]
+    with engine.begin() as connection:
+        for target, created in rows:
+            connection.execute(
+                insert(energy_predictions_table).values(
+                    id=uuid4(),
+                    target_date=target,
+                    predicted_demand_kwh=1.0,
+                    actual_demand_kwh=None,
+                    model_id=model_id,
+                    created_at=created,
+                )
+            )
+
+    default = client.get("/api/v1/predictions").json()["items"]
+    newest = client.get("/api/v1/predictions?order=created_desc").json()["items"]
+    paged = client.get("/api/v1/predictions?order=created_desc&page_size=1&page=2").json()
+    filtered = client.get(
+        "/api/v1/predictions?order=created_desc&start_date=2023-01-01&end_date=2023-12-31"
+    ).json()
+
+    assert [item["target_date"] for item in default] == ["2010-01-01", "2023-01-01", "2023-01-02"]
+    assert [item["target_date"] for item in newest] == ["2010-01-01", "2023-01-02", "2023-01-01"]
+    assert paged["total"] == 3
+    assert paged["items"][0]["target_date"] == "2023-01-02"
+    assert [item["target_date"] for item in filtered["items"]] == ["2023-01-02", "2023-01-01"]
+    assert client.get("/api/v1/predictions?order=bogus").status_code == 422
 
 
 def test_prediction_listing_returns_empty_list(api_client) -> None:

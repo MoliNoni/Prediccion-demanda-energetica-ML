@@ -1,10 +1,13 @@
 from datetime import date
+from typing import Literal
 from uuid import UUID, uuid4
 
 from sqlalchemy import Connection, func, insert, select, update
 from sqlalchemy.sql import Select
 
 from database.schema import energy_predictions_table, models_table
+
+PredictionOrder = Literal["target_date", "created_desc"]
 
 
 class ModelRepository:
@@ -109,6 +112,7 @@ class EnergyPredictionRepository:
         end_date: date | None,
         page: int,
         page_size: int,
+        order: PredictionOrder = "target_date",
     ) -> tuple[list[dict[str, object]], int]:
         statement: Select[tuple[object]] = select(energy_predictions_table)
         if start_date is not None:
@@ -118,7 +122,13 @@ class EnergyPredictionRepository:
         total = connection.execute(
             select(func.count()).select_from(statement.subquery())
         ).scalar_one()
-        statement = statement.order_by(energy_predictions_table.c.target_date.asc())
+        columns = energy_predictions_table.c
+        if order == "created_desc":
+            statement = statement.order_by(
+                columns.created_at.desc(), columns.target_date.desc(), columns.id.desc()
+            )
+        else:
+            statement = statement.order_by(columns.target_date.asc())
         statement = statement.offset((page - 1) * page_size).limit(page_size)
         result = connection.execute(statement)
         return list(result.mappings()), total

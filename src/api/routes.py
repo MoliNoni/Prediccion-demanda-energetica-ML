@@ -23,7 +23,7 @@ from application.prediction import (
     PredictionAlreadyExistsError,
     PredictionService,
 )
-from database.repositories import EnergyPredictionRepository, ModelRepository
+from database.repositories import EnergyPredictionRepository, ModelRepository, PredictionOrder
 from models.serving import ServingArtifactUnavailableError
 
 router = APIRouter()
@@ -71,6 +71,7 @@ def list_predictions(
     end_date: date | None = None,
     page: PAGE = 1,
     page_size: PAGE_SIZE = 30,
+    order: PredictionOrder = "target_date",
 ) -> PredictionListResponse:
     validate_date_range(start_date, end_date)
     try:
@@ -80,6 +81,7 @@ def list_predictions(
             end_date=end_date,
             page=page,
             page_size=page_size,
+            order=order,
         )
     except SQLAlchemyError as error:
         raise HTTPException(status_code=500, detail="Database query failed") from error
