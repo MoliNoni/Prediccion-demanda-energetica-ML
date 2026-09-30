@@ -1,7 +1,7 @@
 import type { Health } from "../hooks/useDashboard";
 import type { Language, Translate } from "../i18n/translations";
 
-const GITHUB_URL = "https://github.com/MoliNoni";
+const GITHUB_URL = "https://github.com/MoliNoni/Prediccion-demanda-energetica-ML";
 
 type HeaderProps = {
   t: Translate;
