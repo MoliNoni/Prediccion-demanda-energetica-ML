@@ -83,9 +83,17 @@ export const api = {
     return (await request<ListResponse<Prediction>>(`/api/v1/predictions?${query}`)).items;
   },
 
+  /** Every prediction in the range, all models included; pages are read until the reported total is reached. */
   async predictionsInRange(startDate: string, endDate: string): Promise<Prediction[]> {
-    const query = `start_date=${startDate}&end_date=${endDate}&page=1&page_size=${MAX_PAGE_SIZE}`;
-    return (await request<ListResponse<Prediction>>(`/api/v1/predictions?${query}`)).items;
+    const pageQuery = (page: number) =>
+      `/api/v1/predictions?start_date=${startDate}&end_date=${endDate}&page=${page}&page_size=${MAX_PAGE_SIZE}`;
+    const first = await request<ListResponse<Prediction>>(pageQuery(1));
+    const lastPage = Math.ceil(first.total / MAX_PAGE_SIZE);
+    if (lastPage <= 1) return first.items;
+    const rest = await Promise.all(
+      Array.from({ length: lastPage - 1 }, (_, index) => request<ListResponse<Prediction>>(pageQuery(index + 2))),
+    );
+    return [...first.items, ...rest.flatMap((response) => response.items)];
   },
 
   async demandInRange(startDate: string, endDate: string): Promise<Demand[]> {
