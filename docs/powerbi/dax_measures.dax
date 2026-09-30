@@ -17,7 +17,17 @@
 //   - Auto date/time disabled (File -> Options -> Current file -> Data load).
 //   - Units: source columns are kWh; measures report GWh (kWh / 1,000,000).
 //   - 2015-12-31 has no demand record; rolling averages ignore blank days on purpose.
+//   - Never name a VAR after a DAX function (Current, LastDate, Window...): it fails or
+//     silently shadows the function. This file mirrors the measures in
+//     reporte_demanda_energetica.pbix.
 // =====================================================================================
+
+
+// ------------------------------------------------------------------ Calculated column
+// dim_date (Table tools -> New column). Monthly axis for line charts: a real date keeps the
+// axis continuous, whereas year + month text forces a scrollbar.
+Month Start =
+    DATE ( dim_date[year], dim_date[month], 1 )
 
 
 // ------------------------------------------------------------------ Base measures
@@ -38,23 +48,23 @@ Total Demand GWh PY =
     CALCULATE ( [Total Demand GWh], SAMEPERIODLASTYEAR ( dim_date[date] ) )
 
 Demand YoY % =
-    VAR Current = [Total Demand GWh]
-    VAR Previous = [Total Demand GWh PY]
+    VAR Cur = [Total Demand GWh]
+    VAR Prev = [Total Demand GWh PY]
     RETURN
-        DIVIDE ( Current - Previous, Previous )
+        DIVIDE ( Cur - Prev, Prev )
 
 // Rolling averages of DAILY demand. AVERAGEX skips days without data (blank).
 Demand 7d Avg GWh =
-    VAR LastDate = MAX ( dim_date[date] )
-    VAR Window = DATESINPERIOD ( dim_date[date], LastDate, -7, DAY )
+    VAR RefDate = MAX ( dim_date[date] )
+    VAR DateWindow = DATESINPERIOD ( dim_date[date], RefDate, -7, DAY )
     RETURN
-        AVERAGEX ( Window, [Total Demand GWh] )
+        AVERAGEX ( DateWindow, [Total Demand GWh] )
 
 Demand 28d Avg GWh =
-    VAR LastDate = MAX ( dim_date[date] )
-    VAR Window = DATESINPERIOD ( dim_date[date], LastDate, -28, DAY )
+    VAR RefDate = MAX ( dim_date[date] )
+    VAR DateWindow = DATESINPERIOD ( dim_date[date], RefDate, -28, DAY )
     RETURN
-        AVERAGEX ( Window, [Total Demand GWh] )
+        AVERAGEX ( DateWindow, [Total Demand GWh] )
 
 // Same weekday one year earlier = shift by 364 days (52 weeks), so a Monday compares
 // with a Monday. Holidays still move around, use the is_colombian_holiday slicer.
@@ -62,10 +72,10 @@ Demand vs Same Weekday LY GWh =
     CALCULATE ( [Total Demand GWh], DATEADD ( dim_date[date], -364, DAY ) )
 
 Demand vs Same Weekday LY % =
-    VAR Current = [Total Demand GWh]
-    VAR Previous = [Demand vs Same Weekday LY GWh]
+    VAR Cur = [Total Demand GWh]
+    VAR Prev = [Demand vs Same Weekday LY GWh]
     RETURN
-        DIVIDE ( Current - Previous, Previous )
+        DIVIDE ( Cur - Prev, Prev )
 
 
 // ------------------------------------------------------------------ Market: price
@@ -77,10 +87,10 @@ Avg Spot Price PY =
     CALCULATE ( [Avg Spot Price], SAMEPERIODLASTYEAR ( dim_date[date] ) )
 
 Price YoY % =
-    VAR Current = [Avg Spot Price]
-    VAR Previous = [Avg Spot Price PY]
+    VAR Cur = [Avg Spot Price]
+    VAR Prev = [Avg Spot Price PY]
     RETURN
-        DIVIDE ( Current - Previous, Previous )
+        DIVIDE ( Cur - Prev, Prev )
 
 // Demand-weighted price: each day's price weighted by that day's demand, so high-demand
 // days count more than a simple average does.
@@ -221,10 +231,10 @@ Accuracy % =
     IF ( NOT ISBLANK ( [Model WAPE] ), 1 - [Model WAPE] )
 
 Rolling 30d WAPE =
-    VAR LastDate = MAX ( dim_date[date] )
-    VAR Window = DATESINPERIOD ( dim_date[date], LastDate, -30, DAY )
+    VAR RefDate = MAX ( dim_date[date] )
+    VAR DateWindow = DATESINPERIOD ( dim_date[date], RefDate, -30, DAY )
     RETURN
-        CALCULATE ( [Model WAPE], Window )
+        CALCULATE ( [Model WAPE], DateWindow )
 
 
 // ------------------------------------------------------------------ What-if: price shock
