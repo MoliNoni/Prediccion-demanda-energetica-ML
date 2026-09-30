@@ -214,6 +214,14 @@
     "base_lag_7": 0,
     "test_dates_without_baseline_or_prediction": 0
   },
+  "test_calendar": {
+    "calendar_days": 730,
+    "absent_from_source": 0,
+    "expected_dates": 730,
+    "feature_rows_in_test_years": 730,
+    "removed_by_prepare_frame": 0,
+    "evaluated_dates": 730
+  },
   "training_max_actual": 217020823.3,
   "v1_1_0_reproduction_max_abs_diff_vs_stored": 0.0,
   "baseline_notes": {

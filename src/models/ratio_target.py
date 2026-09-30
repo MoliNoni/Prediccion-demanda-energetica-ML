@@ -147,6 +147,10 @@ def decode_prediction(
 def daily_series(demand: pd.DataFrame, date_column: str, value_column: str) -> pd.Series:
     """Return demand on a complete daily index; missing days stay NaN (never imputed)."""
     dates = pd.to_datetime(demand[date_column]).dt.normalize()
+    if dates.isna().any():
+        raise ValueError("Demand contains null dates")
+    if dates.duplicated().any():
+        raise ValueError("Demand contains duplicate dates")
     series = pd.Series(demand[value_column].to_numpy(dtype=float), index=dates).sort_index()
     return series.reindex(pd.date_range(series.index.min(), series.index.max(), freq="D"))
 
@@ -203,10 +207,29 @@ class RatioTargetModel:
         self.estimator = HistGradientBoostingRegressor(
             random_state=RANDOM_STATE, **HYPERPARAMETER_SETS[config.hyperparameters]
         )
+        self.dropped_training_rows = 0
+
+    @classmethod
+    def from_estimator(
+        cls, config: RatioConfig, estimator: HistGradientBoostingRegressor
+    ) -> "RatioTargetModel":
+        """Wrap an already fitted estimator (e.g. loaded from MLflow) for serving."""
+        model = cls(config)
+        model.estimator = estimator
+        return model
 
     def fit(self, frame: pd.DataFrame) -> "RatioTargetModel":
-        target = encode_target(frame[TARGET_COLUMN], frame[BASE_COLUMN], self.config.transform)
-        self.estimator.fit(build_matrix(frame, self.config.feature_mode), target)
+        """Fit on rows whose target can be encoded; the rest are dropped and counted."""
+        demand = frame[TARGET_COLUMN].to_numpy(dtype=float)
+        usable = np.isfinite(demand)
+        if self.config.transform == "log_ratio":
+            usable &= demand > 0
+        self.dropped_training_rows = int((~usable).sum())
+        if not usable.any():
+            raise ValueError("No training rows with a usable target")
+        train = frame.loc[usable]
+        target = encode_target(train[TARGET_COLUMN], train[BASE_COLUMN], self.config.transform)
+        self.estimator.fit(build_matrix(train, self.config.feature_mode), target)
         return self
 
     def predict(self, frame: pd.DataFrame) -> np.ndarray:
@@ -219,6 +242,12 @@ def rows_in_years(frame: pd.DataFrame, years: tuple[int, int]) -> pd.DataFrame:
     return frame.loc[year.between(*years)]
 
 
+def refit_on_train_and_validation(frame: pd.DataFrame, config: RatioConfig) -> RatioTargetModel:
+    """Fit ``config`` on train + validation years (2000-2021); Test is never read."""
+    refit_years = (TRAIN_YEARS[0], VALIDATION_YEARS[1])
+    return RatioTargetModel(config).fit(rows_in_years(frame, refit_years))
+
+
 def select_on_validation(
     prepared: dict[int, pd.DataFrame],
     configs: Sequence[RatioConfig],
@@ -229,7 +258,9 @@ def select_on_validation(
 
     ``prepared`` maps each base lag to its prepared frame. Rows outside the train and
     validation years (including the Test period) are never read for fitting or scoring.
-    Ties are broken by grid order.
+    Configs with a non-finite validation WAPE are rejected (score ``None``); if none is
+    valid, or a train or validation slice is empty, a ``ValueError`` is raised. Ties are broken
+    by grid order.
     """
     if not configs:
         raise ValueError("configs must not be empty")
@@ -238,16 +269,23 @@ def select_on_validation(
         frame = prepared[config.base_lag]
         train = rows_in_years(frame, train_years)
         validation = rows_in_years(frame, validation_years)
+        if train.empty or validation.empty:
+            raise ValueError(f"Empty train or validation slice for {config}")
         model = RatioTargetModel(config).fit(train)
         prediction = model.predict(validation)
+        validation_wape = wape(validation[TARGET_COLUMN], prediction)
+        finite = bool(np.isfinite(validation_wape))
         scores.append(
             {
                 **config.as_dict(),
                 "validation_rows": len(validation),
-                "validation_wape": wape(validation[TARGET_COLUMN], prediction),
+                "validation_wape": validation_wape if finite else None,
             }
         )
-    best_index = int(np.argmin([score["validation_wape"] for score in scores]))
+    valid = [index for index, score in enumerate(scores) if score["validation_wape"] is not None]
+    if not valid:
+        raise ValueError("Every config has a non-finite validation WAPE")
+    best_index = min(valid, key=lambda index: scores[index]["validation_wape"])
     return configs[best_index], scores
 
 

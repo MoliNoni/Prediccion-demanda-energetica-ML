@@ -1,6 +1,7 @@
 """Phase 12: relative-target candidate, selected on Validation and evaluated once on Test."""
 
 import json
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +16,6 @@ from models.ratio_target import (
     DATE_COLUMN,
     TARGET_COLUMN,
     TRAIN_YEARS,
-    VALIDATION_YEARS,
     RatioConfig,
     RatioTargetModel,
     base_demand,
@@ -23,6 +23,7 @@ from models.ratio_target import (
     daily_series,
     default_grid,
     prepare_frame,
+    refit_on_train_and_validation,
     rows_in_years,
     select_on_validation,
 )
@@ -34,6 +35,8 @@ OUTPUT_PATH = Path("data/processed/phase12_ratio_target_results.json")
 PREDICTIONS_OUTPUT = Path("data/processed/phase12_ratio_target_predictions.parquet")
 CANDIDATE_DIRECTORY = Path("data/processed/candidates")
 TEST_YEARS = (2022, 2023)
+TEST_CALENDAR = (pd.Timestamp("2022-01-01"), pd.Timestamp("2023-12-31"))
+REPRODUCTION_TOLERANCE_KWH = 1e-6
 ACTUAL = "actual"
 V1_METHOD = "v1_1_0_absolute"
 CANDIDATE = "ratio_candidate"
@@ -85,6 +88,40 @@ def method_report(test: pd.DataFrame, method: str, training_max: float) -> dict[
     }
 
 
+def check_test_calendar(
+    daily: pd.Series, features: pd.DataFrame, evaluated: pd.DatetimeIndex
+) -> dict[str, int]:
+    """Check that every Test date with source demand was evaluated; return the counts.
+
+    Dates genuinely absent from the source (missing or NaN demand) are the only ones that may
+    be missing. Anything else means a feature or base-demand step silently removed a date.
+    """
+    calendar = pd.date_range(*TEST_CALENDAR, freq="D")
+    present = daily.reindex(calendar).notna().to_numpy()
+    expected = calendar[present]
+    feature_dates = pd.DatetimeIndex(
+        rows_in_years(
+            features.assign(**{DATE_COLUMN: pd.to_datetime(features[DATE_COLUMN])}), TEST_YEARS
+        )[DATE_COLUMN]
+    )
+    missing = expected.difference(evaluated)
+    unexpected = evaluated.difference(expected)
+    if len(missing) or len(unexpected):
+        raise ValueError(
+            f"Evaluated Test dates differ from the expected calendar: "
+            f"{len(missing)} missing (first: {list(missing[:3])}), "
+            f"{len(unexpected)} unexpected"
+        )
+    return {
+        "calendar_days": len(calendar),
+        "absent_from_source": int((~present).sum()),
+        "expected_dates": len(expected),
+        "feature_rows_in_test_years": len(feature_dates),
+        "removed_by_prepare_frame": len(feature_dates.difference(evaluated)),
+        "evaluated_dates": len(evaluated),
+    }
+
+
 def run(
     features_path: Path = INPUT_DATASET_V2,
     daily_path: Path = INTERIM_OUTPUT,
@@ -92,10 +129,11 @@ def run(
     output_path: Path = OUTPUT_PATH,
     predictions_path: Path = PREDICTIONS_OUTPUT,
     candidate_directory: Path = CANDIDATE_DIRECTORY,
+    grid: Sequence[RatioConfig] | None = None,
 ) -> dict[str, Any]:
     features = pd.read_parquet(features_path)
     daily = daily_series(pd.read_parquet(daily_path), "Fecha", DEMAND_COLUMN)
-    grid = default_grid()
+    grid = list(grid) if grid is not None else default_grid()
 
     prepared: dict[int, pd.DataFrame] = {}
     dropped: dict[str, int] = {}
@@ -112,8 +150,7 @@ def run(
     test_frame = rows_in_years(frame, TEST_YEARS)
     final_model = RatioTargetModel(selected).fit(train)
     # Secondary, pre-declared: refit on train + validation (no further selection).
-    refit_frame = rows_in_years(frame, (TRAIN_YEARS[0], VALIDATION_YEARS[1]))
-    refit_model = RatioTargetModel(selected).fit(refit_frame)
+    refit_model = refit_on_train_and_validation(frame, selected)
 
     # 3. Baselines on identical dates.
     v1 = pd.read_parquet(v1_predictions_path)
@@ -136,6 +173,7 @@ def run(
     dropped_test = int(test[[*METHODS]].isna().any(axis=1).sum())
     if dropped_test:
         raise ValueError(f"{dropped_test} Test dates lack a baseline or prediction")
+    calendar_report = check_test_calendar(daily, features, dates)
     training_max = float(train[TARGET_COLUMN].max())
 
     # Reproduce v1.1.0 with the project's own pipeline as a cross-check of the stored file.
@@ -147,9 +185,17 @@ def run(
         v2_model.predict(v2_test.loc[:, list(PREDICTOR_COLUMNS_V2)]),
         index=pd.DatetimeIndex(v2_test[DATE_COLUMN]),
     )
-    reproduction_max_abs_diff = float(
-        np.abs(reproduced.reindex(dates).to_numpy() - test[V1_METHOD].to_numpy()).max()
-    )
+    reproduced_on_test = reproduced.reindex(dates).to_numpy()
+    if np.isnan(reproduced_on_test).any():
+        raise ValueError("The v1.1.0 reproduction lacks predictions for some Test dates")
+    reproduction_max_abs_diff = float(np.abs(reproduced_on_test - test[V1_METHOD].to_numpy()).max())
+    if not np.isfinite(reproduction_max_abs_diff) or (
+        reproduction_max_abs_diff > REPRODUCTION_TOLERANCE_KWH
+    ):
+        raise ValueError(
+            "v1.1.0 reproduction does not match the stored predictions: max abs diff "
+            f"{reproduction_max_abs_diff} kWh (tolerance {REPRODUCTION_TOLERANCE_KWH})"
+        )
 
     output = {
         "purpose": "Relative-target candidate versus v1.1.0 and naive baselines",
@@ -174,6 +220,7 @@ def run(
             **dropped,
             "test_dates_without_baseline_or_prediction": dropped_test,
         },
+        "test_calendar": calendar_report,
         "training_max_actual": training_max,
         "v1_1_0_reproduction_max_abs_diff_vs_stored": reproduction_max_abs_diff,
         "baseline_notes": {
@@ -185,7 +232,7 @@ def run(
     }
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(output, indent=2), encoding="utf-8")
+    output_path.write_text(json.dumps(output, indent=2, allow_nan=False), encoding="utf-8")
     predictions_path.parent.mkdir(parents=True, exist_ok=True)
     test.to_parquet(predictions_path, index=False)
     candidate_directory.mkdir(parents=True, exist_ok=True)
