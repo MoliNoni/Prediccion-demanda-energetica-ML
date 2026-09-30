@@ -1,0 +1,15 @@
+artifact_uri: file:///app/mlruns/902517341806943104/1225e5a378bd4d89bcc08c8851389b89/artifacts
+end_time: 1790749436046
+entry_point_name: ''
+experiment_id: '902517341806943104'
+lifecycle_stage: active
+run_id: 1225e5a378bd4d89bcc08c8851389b89
+run_name: phase-12-ratio-target-v1-2-0
+run_uuid: 1225e5a378bd4d89bcc08c8851389b89
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1790749430745
+status: 3
+tags: []
+user_id: root

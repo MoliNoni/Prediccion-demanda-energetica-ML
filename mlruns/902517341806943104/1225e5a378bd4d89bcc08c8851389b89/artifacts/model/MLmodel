@@ -1,0 +1,64 @@
+artifact_path: model
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.12.14
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.9.1
+is_signature_from_type_hint: false
+mlflow_version: 2.22.5
+model_size_bytes: 787178
+model_uuid: bcf05e519ebd4c47a1a389106b66b312
+prompts: null
+run_id: 1225e5a378bd4d89bcc08c8851389b89
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "integer", "name": "weekday", "required": true}, {"type": "integer",
+    "name": "day_of_month", "required": true}, {"type": "integer", "name": "month",
+    "required": true}, {"type": "long", "name": "iso_week", "required": true}, {"type":
+    "integer", "name": "day_of_year", "required": true}, {"type": "integer", "name":
+    "weekend", "required": true}, {"type": "double", "name": "weekday_sin", "required":
+    true}, {"type": "double", "name": "weekday_cos", "required": true}, {"type": "double",
+    "name": "month_sin", "required": true}, {"type": "double", "name": "month_cos",
+    "required": true}, {"type": "double", "name": "day_of_year_sin", "required": true},
+    {"type": "double", "name": "day_of_year_cos", "required": true}, {"type": "double",
+    "name": "lag_1_rel", "required": true}, {"type": "double", "name": "lag_2_rel",
+    "required": true}, {"type": "double", "name": "lag_3_rel", "required": true},
+    {"type": "double", "name": "lag_7_rel", "required": true}, {"type": "double",
+    "name": "lag_14_rel", "required": true}, {"type": "double", "name": "lag_28_rel",
+    "required": true}, {"type": "double", "name": "rolling_mean_3_including_reference_rel",
+    "required": true}, {"type": "double", "name": "rolling_std_3_including_reference_rel",
+    "required": true}, {"type": "double", "name": "rolling_mean_7_rel", "required":
+    true}, {"type": "double", "name": "rolling_std_7_rel", "required": true}, {"type":
+    "double", "name": "rolling_mean_14_rel", "required": true}, {"type": "double",
+    "name": "rolling_std_14_rel", "required": true}, {"type": "double", "name": "rolling_mean_28_rel",
+    "required": true}, {"type": "double", "name": "rolling_std_28_rel", "required":
+    true}, {"type": "double", "name": "demand_at_reference_date_rel", "required":
+    true}, {"type": "double", "name": "lag_1", "required": true}, {"type": "double",
+    "name": "lag_2", "required": true}, {"type": "double", "name": "lag_3", "required":
+    true}, {"type": "double", "name": "lag_7", "required": true}, {"type": "double",
+    "name": "lag_14", "required": true}, {"type": "double", "name": "lag_28", "required":
+    true}, {"type": "double", "name": "rolling_mean_3_including_reference", "required":
+    true}, {"type": "double", "name": "rolling_std_3_including_reference", "required":
+    true}, {"type": "double", "name": "rolling_mean_7", "required": true}, {"type":
+    "double", "name": "rolling_std_7", "required": true}, {"type": "double", "name":
+    "rolling_mean_14", "required": true}, {"type": "double", "name": "rolling_std_14",
+    "required": true}, {"type": "double", "name": "rolling_mean_28", "required": true},
+    {"type": "double", "name": "rolling_std_28", "required": true}, {"type": "double",
+    "name": "demand_at_reference_date", "required": true}]'
+  outputs: '[{"type": "double", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-09-30 06:23:50.889819'
