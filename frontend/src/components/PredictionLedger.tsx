@@ -4,6 +4,7 @@ import type { Translate } from "../i18n/translations";
 import type { Formatters } from "../lib/format";
 import { InfoTip } from "./InfoTip";
 import { SkeletonRows } from "./Skeleton";
+import { SplitBadge } from "./SplitBadge";
 
 type PredictionLedgerProps = {
   t: Translate;
@@ -54,6 +55,9 @@ export function PredictionLedger({ t, fmt, predictions, total, focusDate, onFocu
                     >
                       {fmt.date(item.target_date)}
                     </button>
+                    <span className="badge-group">
+                      <SplitBadge t={t} targetDate={item.target_date} />
+                    </span>
                   </td>
                   <td className="num">{fmt.kwh(item.predicted_demand_kwh)}</td>
                   <td className="num">{fmt.kwh(item.actual_demand_kwh)}</td>

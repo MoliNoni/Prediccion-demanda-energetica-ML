@@ -58,6 +58,14 @@ const en = {
   contextTitle: "The forecast against the last 60 days",
   contextTitleLatest: "Context of the latest forecast",
   currentForecast: "Current forecast",
+  splitTrain: "Training",
+  splitValidation: "Validation",
+  splitTest: "Test",
+  splitTrainTitle: "Training period (2000-2019): the model saw the actual value while learning, so the comparison is optimistic.",
+  splitValidationTitle: "Validation period (2020-2021): used to choose the model, so the comparison is slightly optimistic.",
+  splitTestTitle: "Test period (2022-2023): never seen by the model, so the comparison reflects real performance.",
+  splitNote:
+    "The model was trained on 2000-2019, validated on 2020-2021 and tested on 2022-2023. For training dates it already knew the actual value, so the comparison looks optimistic; only test dates measure its real performance.",
   contextTooltip:
     "Daily demand for the 60 days before the focused date, a 7-day moving average, the forecast for that date and any other stored forecasts inside the window.",
   contextEmpty: "Run a forecast to see it against the demand series.",
@@ -174,6 +182,14 @@ const es: Record<TranslationKey, string> = {
   contextTitle: "El pronóstico frente a los últimos 60 días",
   contextTitleLatest: "Contexto de la última predicción",
   currentForecast: "Predicción actual",
+  splitTrain: "Entrenamiento",
+  splitValidation: "Validación",
+  splitTest: "Prueba",
+  splitTrainTitle: "Periodo de entrenamiento (2000-2019): el modelo vio el valor real al aprender, así que la comparación es optimista.",
+  splitValidationTitle: "Periodo de validación (2020-2021): se usó para elegir el modelo, así que la comparación es algo optimista.",
+  splitTestTitle: "Periodo de prueba (2022-2023): el modelo nunca lo vio, así que la comparación refleja su rendimiento real.",
+  splitNote:
+    "El modelo se entrenó con 2000-2019, se validó con 2020-2021 y se probó con 2022-2023. En fechas de entrenamiento ya conocía el valor real, así que la comparación sale optimista; solo las fechas de prueba miden su rendimiento real.",
   contextTooltip:
     "Demanda diaria de los 60 días previos a la fecha seleccionada, su media móvil de 7 días, el pronóstico para esa fecha y otros pronósticos almacenados dentro de la ventana.",
   contextEmpty: "Genera un pronóstico para verlo sobre la serie de demanda.",

@@ -6,6 +6,7 @@ import type { Formatters } from "../lib/format";
 import { COMPARISON_ROWS, sortNewestFirst } from "../lib/predictions";
 import { InfoTip } from "./InfoTip";
 import { SkeletonRows } from "./Skeleton";
+import { SplitBadge } from "./SplitBadge";
 
 type ComparisonTableProps = {
   t: Translate;
@@ -34,6 +35,7 @@ export function ComparisonTable({ t, fmt, predictions, total, model, focusDate, 
           </span>
         </div>
       </div>
+      <p className="hint split-note">{t("splitNote")}</p>
       <div className="table-wrap">
         <table>
           <thead>
@@ -65,7 +67,10 @@ export function ComparisonTable({ t, fmt, predictions, total, model, focusDate, 
                       >
                         {fmt.date(item.target_date)}
                       </button>
-                      {index === 0 && <span className="tag row-badge">{t("currentForecast")}</span>}
+                      <span className="badge-group">
+                        {index === 0 && <span className="tag row-badge">{t("currentForecast")}</span>}
+                        <SplitBadge t={t} targetDate={item.target_date} />
+                      </span>
                     </td>
                     <td className="num">{fmt.kwh(item.predicted_demand_kwh)}</td>
                     <td className="num">{fmt.kwh(item.actual_demand_kwh)}</td>

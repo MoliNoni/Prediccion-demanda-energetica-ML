@@ -443,6 +443,33 @@ button {
   white-space: nowrap;
 }
 
+.badge-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  vertical-align: middle;
+}
+
+.split-note {
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.split-train {
+  background: var(--color-fog);
+  color: var(--color-slate);
+}
+
+.split-validation {
+  background: var(--color-ivory);
+  color: var(--color-brass);
+}
+
+.split-test {
+  background: var(--color-graphite);
+  color: var(--color-canvas-white);
+}
+
 .tag-ember {
   background: transparent;
   padding: 0;

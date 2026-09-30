@@ -3,6 +3,7 @@ import type { Translate } from "../i18n/translations";
 import { DATE_RANGE } from "../lib/format";
 import type { Formatters } from "../lib/format";
 import { InfoTip } from "./InfoTip";
+import { SplitBadge } from "./SplitBadge";
 
 type ForecastPanelProps = {
   t: Translate;
@@ -77,6 +78,10 @@ export function ForecastPanel({
           <p className="hint">
             {fmt.date(latest.target_date)} · {latest.model_version ? `v${latest.model_version}` : (modelVersion ?? t("model"))}
           </p>
+          <p className="badge-group">
+            <SplitBadge t={t} targetDate={latest.target_date} />
+          </p>
+          <p className="hint split-note">{t("splitNote")}</p>
         </div>
       )}
     </div>
