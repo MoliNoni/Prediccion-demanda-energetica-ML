@@ -1012,9 +1012,14 @@ tr.is-focused td {
   line-height: 1;
 }
 
-.pbi-arrow:hover {
+.pbi-arrow:not(:disabled):hover {
   border-color: var(--color-ember-orange);
   color: var(--color-ember-orange);
+}
+
+/* Keep the "next" arrow on the right even if it is the only arrow rendered. */
+.pbi-variant .pbi-arrow:last-child {
+  margin-left: auto;
 }
 
 .pbi-dialog-figure {
