@@ -80,3 +80,6 @@ TODO*.md
 todo*.md
 NOTES.md
 notes*.md
+
+# Generated Power BI downloads (copied from docs/powerbi by a prebuild script)
+frontend/public/powerbi/downloads/

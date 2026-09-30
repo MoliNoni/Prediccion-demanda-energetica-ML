@@ -22,3 +22,6 @@ notebooks/**
 tests/**
 migrations/**
 docker/**
+!docs/powerbi/
+!docs/powerbi/reporte_demanda_energetica.pdf
+!docs/powerbi/reporte_demanda_energetica.pbix
