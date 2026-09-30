@@ -75,9 +75,22 @@ export function PredictionContextChart({ t, fmt, focusDate, context, focusPredic
 
         {!loading && series && <StatRow t={t} fmt={fmt} series={series} />}
         {!loading && !focusPrediction && context.status === "ready" && <p className="hint">{t("contextEmpty")}</p>}
+        {!loading && series && describeMissing(t, fmt, series) && (
+          <figcaption className="chart-caption">{describeMissing(t, fmt, series)}</figcaption>
+        )}
       </figure>
     </div>
   );
+}
+
+/** Only explains missing data; when both values exist the stat row already says everything. */
+function describeMissing(t: Translate, fmt: Formatters, series: ContextSeries): string | null {
+  const date = fmt.date(series.focusDate);
+  if (series.predictedAtFocus === null) return t("captionNoPrediction", { date });
+  if (series.actualAtFocus === null) {
+    return t("captionNoActual", { date, predicted: fmt.gwh(series.predictedAtFocus, 2) });
+  }
+  return null;
 }
 
 function StatRow({ t, fmt, series }: { t: Translate; fmt: Formatters; series: ContextSeries }) {

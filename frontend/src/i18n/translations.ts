@@ -72,6 +72,8 @@ const en = {
     "The active model (v{version}) was trained on {trainFrom}-{trainTo} and tested on {testFrom}-{testTo}. Forecasts for dates inside the range the model was trained on can look inflated; only test dates ({testFrom}-{testTo}) measure its real performance.",
   contextTooltip:
     "Daily demand for the 60 days before the focused date, a 7-day moving average, the forecast for that date and any other stored forecasts inside the window.",
+  captionNoActual: "For {date} the model predicted {predicted}. The actual figure is not available yet.",
+  captionNoPrediction: "No forecast is stored for {date}.",
   contextEmpty: "Run a forecast to see it against the demand series.",
   contextNoData: "There is no demand data for this window.",
   contextUnavailable: "The demand series could not be loaded.",
@@ -201,6 +203,8 @@ const es: Record<TranslationKey, string> = {
     "El modelo activo (v{version}) se entrenó con {trainFrom}-{trainTo} y se probó con {testFrom}-{testTo}. Al predecir fechas que entran en el rango con el que el modelo fue entrenado, es posible encontrar valores inflados; solo las fechas de prueba ({testFrom}-{testTo}) miden su rendimiento real.",
   contextTooltip:
     "Demanda diaria de los 60 días previos a la fecha seleccionada, su media móvil de 7 días, el pronóstico para esa fecha y otros pronósticos almacenados dentro de la ventana.",
+  captionNoActual: "Para el {date} el modelo predijo {predicted}. La cifra real aún no está disponible.",
+  captionNoPrediction: "No hay un pronóstico almacenado para el {date}.",
   contextEmpty: "Genera un pronóstico para verlo sobre la serie de demanda.",
   contextNoData: "No hay datos de demanda para esta ventana.",
   contextUnavailable: "No se pudo cargar la serie de demanda.",
