@@ -922,6 +922,19 @@ tr.is-focused td {
   color: var(--color-steel);
 }
 
+.footer-title {
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.footer-sources {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
 /* Skeletons */
 .skeleton {
   position: relative;

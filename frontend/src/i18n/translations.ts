@@ -106,7 +106,10 @@ const en = {
   predictionUnavailable: "Prediction unavailable",
   predictionExists: "A forecast for this date is already stored. Showing it below.",
   moreInfo: "More information",
-  dataSource: "Data source: XM Colombia — historical energy demand data from the National Interconnected System (SIN).",
+  sourcesTitle: "Data sources",
+  sourceXmDemand: "XM Colombia — daily demand of the National Interconnected System (SIN), 2000–2023. Used to train the model.",
+  sourceXmApi: "XM Colombia public API — spot price, reservoir levels, inflows, generation, imports and exports.",
+  sourceOni: "NOAA Climate Prediction Center — Oceanic Niño Index (ONI) for the El Niño and La Niña phases.",
 } as const;
 
 export type TranslationKey = keyof typeof en;
@@ -217,7 +220,10 @@ const es: Record<TranslationKey, string> = {
   predictionUnavailable: "Pronóstico no disponible",
   predictionExists: "Ya existe un pronóstico para esta fecha. Se muestra a continuación.",
   moreInfo: "Más información",
-  dataSource: "Fuente de datos: XM Colombia — información histórica de demanda energética del Sistema Interconectado Nacional (SIN).",
+  sourcesTitle: "Fuentes de datos",
+  sourceXmDemand: "XM Colombia — demanda diaria del Sistema Interconectado Nacional (SIN), 2000–2023. Con ella se entrenó el modelo.",
+  sourceXmApi: "API pública de XM Colombia — precio de bolsa, nivel de embalses, aportes hídricos, generación, importaciones y exportaciones.",
+  sourceOni: "NOAA Climate Prediction Center — Índice Oceánico de El Niño (ONI), para las fases de El Niño y La Niña.",
 };
 
 export const translations: Record<Language, Record<TranslationKey, string>> = { en, es };

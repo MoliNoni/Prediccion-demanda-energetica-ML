@@ -8,12 +8,18 @@ import { PredictionContextChart } from "../components/PredictionContextChart";
 import { PredictionLedger } from "../components/PredictionLedger";
 import { useDashboard } from "../hooks/useDashboard";
 import { createTranslate } from "../i18n/translations";
-import type { Language } from "../i18n/translations";
+import type { Language, TranslationKey } from "../i18n/translations";
 import { createFormatters } from "../lib/format";
 import { resolvePowerBiUrl } from "../lib/powerbi";
 
 const LANGUAGE_KEY = "spde-language";
 const POWERBI_URL = resolvePowerBiUrl(import.meta.env.VITE_POWERBI_EMBED_URL);
+
+const DATA_SOURCES: Array<{ label: TranslationKey; href: string }> = [
+  { label: "sourceXmDemand", href: "https://www.xm.com.co/consumo/informes-demanda" },
+  { label: "sourceXmApi", href: "https://github.com/EquipoAnaliticaXM/API_XM" },
+  { label: "sourceOni", href: "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php" },
+];
 
 function getInitialLanguage(): Language {
   try {
@@ -111,9 +117,16 @@ export function App() {
       </main>
 
       <footer className="site-footer container">
-        <a className="link" href="https://www.xm.com.co/consumo/informes-demanda" target="_blank" rel="noreferrer">
-          {t("dataSource")}
-        </a>
+        <p className="footer-title">{t("sourcesTitle")}</p>
+        <ul className="footer-sources">
+          {DATA_SOURCES.map((source) => (
+            <li key={source.label}>
+              <a className="link" href={source.href} target="_blank" rel="noreferrer">
+                {t(source.label)}
+              </a>
+            </li>
+          ))}
+        </ul>
       </footer>
     </div>
   );
