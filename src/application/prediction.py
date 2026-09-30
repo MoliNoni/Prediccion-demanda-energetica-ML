@@ -11,7 +11,7 @@ from database.repositories import EnergyPredictionRepository, ModelRepository
 from features.pipeline import FeaturePreparationError
 from ingestion.constants import EXPECTED_COLUMNS, TARGET_COLUMN
 from models.serving import MlflowModelLoader
-from models.serving_registry import ServingModelRegistry
+from models.serving_registry import SUPPORTED_SERVING_MODELS, ServingModelRegistry
 
 
 class NoActiveModelError(RuntimeError):
@@ -40,6 +40,23 @@ class InsufficientHistoryError(PredictionDataUnavailableError):
 
 class ModelNotRegisteredError(RuntimeError):
     """Raised when a requested model version has no registered database row."""
+
+
+def find_registered_model(connection: Connection, model_version: str) -> dict[str, object]:
+    """Return the database row of the supported serving model with this version.
+
+    Raises ``ModelNotRegisteredError`` if the version is unsupported or has no row, and
+    ``ModelAmbiguousError`` if more than one row matches the serving model name and version.
+    """
+    supported = SUPPORTED_SERVING_MODELS.get(model_version)
+    requested = (
+        ModelRepository().get_by_version(connection, model_version, name=supported[0])
+        if supported is not None
+        else None
+    )
+    if requested is None:
+        raise ModelNotRegisteredError(f"Model version {model_version} is not registered")
+    return requested
 
 
 class PredictionService:
@@ -92,10 +109,7 @@ class PredictionService:
     @staticmethod
     def _select_model(connection: Connection, model_version: str | None) -> dict[str, object]:
         if model_version is not None:
-            requested = ModelRepository().get_by_version(connection, model_version)
-            if requested is None:
-                raise ModelNotRegisteredError(f"Model version {model_version} is not registered")
-            return requested
+            return find_registered_model(connection, model_version)
         active_models = ModelRepository().get_active(connection)
         if not active_models:
             raise NoActiveModelError

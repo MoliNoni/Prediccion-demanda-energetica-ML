@@ -93,7 +93,7 @@ def test_run_fails_when_the_v1_reproduction_differs_from_the_stored_file(inputs,
     paths, _, predictions = inputs
     tampered = predictions.copy()
     column = "HistGradientBoostingRegressor_v2_prediction"
-    tampered[column] = tampered[column] + 1.0
+    tampered[column] = tampered[column] + 10.0
     tampered_path = tmp_path / "tampered.parquet"
     tampered.to_parquet(tampered_path, index=False)
 

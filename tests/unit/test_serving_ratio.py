@@ -141,6 +141,61 @@ def test_loader_prefers_the_runtime_tracking_uri_over_a_stale_windows_path(
     assert loaded_metadata["tracking_uri"] == "file:///app/mlruns"
 
 
+def test_loader_falls_through_to_the_next_candidate_after_an_os_error(
+    tmp_path, monkeypatch
+) -> None:
+    path = tmp_path / "ratio.json"
+    path.write_text(json.dumps(metadata()), encoding="utf-8")
+    monkeypatch.setattr(
+        "models.serving_ratio._tracking_uri_candidates",
+        lambda _: ["file:///stale/mlruns", "file:///app/mlruns"],
+    )
+    current: list[str] = []
+    monkeypatch.setattr("models.serving_ratio.mlflow.set_tracking_uri", current.append)
+
+    def fake_load_model(model_uri: str):
+        if current[-1] == "file:///stale/mlruns":
+            raise OSError("unreadable artifact store")
+        return HistGradientBoostingRegressor()
+
+    monkeypatch.setattr("models.serving_ratio.mlflow.sklearn.load_model", fake_load_model)
+
+    _, loaded_metadata = RatioMlflowModelLoader(path).load()
+
+    assert current == ["file:///stale/mlruns", "file:///app/mlruns"]
+    assert loaded_metadata["tracking_uri"] == "file:///app/mlruns"
+
+
+def test_loader_rejects_an_estimator_fitted_on_other_feature_names(
+    fitted, tmp_path, monkeypatch
+) -> None:
+    model, _, _ = fitted
+    columns = [*model.estimator.feature_names_in_]
+    path = tmp_path / "ratio.json"
+    path.write_text(json.dumps({**metadata(), "estimator_columns": columns}), encoding="utf-8")
+    wrong = HistGradientBoostingRegressor(max_iter=2).fit(
+        pd.DataFrame(np.arange(20.0).reshape(10, 2), columns=["a", "b"]), np.arange(10.0)
+    )
+    monkeypatch.setattr("models.serving_ratio.mlflow.sklearn.load_model", lambda _: wrong)
+
+    with pytest.raises(CandidateServingArtifactUnavailableError, match="feature names"):
+        RatioMlflowModelLoader(path).load()
+
+
+def test_loader_accepts_an_estimator_with_the_metadata_feature_names(
+    fitted, tmp_path, monkeypatch
+) -> None:
+    model, _, _ = fitted
+    columns = [*model.estimator.feature_names_in_]
+    path = tmp_path / "ratio.json"
+    path.write_text(json.dumps({**metadata(), "estimator_columns": columns}), encoding="utf-8")
+    monkeypatch.setattr("models.serving_ratio.mlflow.sklearn.load_model", lambda _: model.estimator)
+
+    loaded, _ = RatioMlflowModelLoader(path).load()
+
+    assert loaded.estimator is model.estimator
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [

@@ -76,6 +76,33 @@ def test_candidate_loader_prefers_runtime_tracking_uri_over_stale_windows_path(
     assert metadata["tracking_uri"] == "file:///app/mlruns"
 
 
+def test_candidate_loader_falls_through_to_the_next_candidate_after_an_os_error(
+    tmp_path, monkeypatch
+) -> None:
+    path = tmp_path / "candidate.json"
+    path.write_text(json.dumps(candidate_metadata()), encoding="utf-8")
+    monkeypatch.setattr(
+        "models.serving_v2._tracking_uri_candidates",
+        lambda _: ["file:///stale/mlruns", "file:///app/mlruns"],
+    )
+    current: list[str] = []
+    monkeypatch.setattr("models.serving_v2.mlflow.set_tracking_uri", current.append)
+    expected_model = object()
+
+    def fake_load_model(model_uri: str):
+        if current[-1] == "file:///stale/mlruns":
+            raise OSError("unreadable artifact store")
+        return expected_model
+
+    monkeypatch.setattr("models.serving_v2.mlflow.sklearn.load_model", fake_load_model)
+
+    model, metadata = CandidateMlflowModelLoaderV2(path).load()
+
+    assert model is expected_model
+    assert current == ["file:///stale/mlruns", "file:///app/mlruns"]
+    assert metadata["tracking_uri"] == "file:///app/mlruns"
+
+
 def test_candidate_prediction_uses_metadata_feature_order(monkeypatch) -> None:
     dates = pd.date_range("2023-01-01", periods=40, freq="D")
     frame = pd.DataFrame(

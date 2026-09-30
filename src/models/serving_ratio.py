@@ -32,6 +32,7 @@ from models.ratio_target import (
     build_matrix,
     daily_series,
     feature_columns,
+    matches_within_tolerance,
     prepare_frame,
     refit_on_train_and_validation,
     rows_in_years,
@@ -61,7 +62,6 @@ SERVING_TRAIN_YEARS = (TRAIN_YEARS[0], VALIDATION_YEARS[1])
 RESULTS_PATH = Path("data/processed/phase12_ratio_target_results.json")
 PREDICTIONS_PATH = Path("data/processed/phase12_ratio_target_predictions.parquet")
 REFIT_PREDICTION_COLUMN = "ratio_candidate_refit_2000_2021"
-REFIT_MATCH_ABS_TOLERANCE_KWH = 1.0  # kWh; demand is ~2e8, so this is ~5e-9 relative
 TEST_YEARS = (2022, 2023)
 
 
@@ -95,9 +95,10 @@ def verify_against_phase12(
     stored = pd.read_parquet(predictions_path).set_index("date")[REFIT_PREDICTION_COLUMN]
     dates = pd.DatetimeIndex(test_frame["target_date"])
     expected = stored.reindex(dates).to_numpy(dtype=float)
-    difference = np.abs(model.predict(test_frame) - expected)
+    predicted = model.predict(test_frame)
+    difference = np.abs(predicted - expected)
     max_difference = float(difference.max()) if len(difference) else float("nan")
-    if not np.isfinite(max_difference) or max_difference > REFIT_MATCH_ABS_TOLERANCE_KWH:
+    if not matches_within_tolerance(predicted, expected):
         raise ValueError(
             "Refit does not reproduce the Phase 12 refit predictions "
             f"(max abs diff {max_difference})"
@@ -198,6 +199,18 @@ def create_serving_artifact_v1_2(
     return metadata
 
 
+def _check_estimator_columns(estimator: Any, metadata: dict[str, Any]) -> None:
+    """Reject an estimator fitted on different feature names than the serving metadata lists."""
+    fitted_names = getattr(estimator, "feature_names_in_", None)
+    if fitted_names is None:
+        return
+    expected = metadata.get("estimator_columns", feature_columns(SERVING_CONFIG.feature_mode))
+    if list(fitted_names) != list(expected):
+        raise CandidateServingArtifactUnavailableError(
+            "V1.2 estimator feature names do not match the serving metadata"
+        )
+
+
 class RatioMlflowModelLoader:
     """Loads the v1.2.0 estimator and wraps it so ``predict`` returns demand in kWh."""
 
@@ -222,9 +235,15 @@ class RatioMlflowModelLoader:
                 try:
                     mlflow.set_tracking_uri(tracking_uri)
                     estimator = mlflow.sklearn.load_model(metadata["model_uri"])
+                    _check_estimator_columns(estimator, metadata)
                     metadata["tracking_uri"] = tracking_uri
                     return RatioTargetModel.from_estimator(SERVING_CONFIG, estimator), metadata
-                except (TypeError, ValueError, mlflow.exceptions.MlflowException) as error:
+                except (
+                    OSError,
+                    TypeError,
+                    ValueError,
+                    mlflow.exceptions.MlflowException,
+                ) as error:
                     last_error = error
             raise CandidateServingArtifactUnavailableError(
                 "V1.2 serving artifact is unavailable"

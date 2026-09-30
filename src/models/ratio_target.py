@@ -89,6 +89,22 @@ HYPERPARAMETER_SETS: dict[str, dict[str, Any]] = {
     },
 }
 RANDOM_STATE = 42
+# Reproduction checks (serving refit and v1.1.0 cross-check) share one tolerance. Demand is about
+# 2e8 kWh, so the 1 kWh absolute part is ~5e-9 relative and absorbs BLAS and library-build
+# differences; the relative part scales it for larger values.
+MATCH_ABS_TOLERANCE_KWH = 1.0
+MATCH_REL_TOLERANCE = 1e-9
+
+
+def matches_within_tolerance(actual: Sequence[float], expected: Sequence[float]) -> bool:
+    """True if every ``|a - e| <= abs_tol + rel_tol * |e|`` (finite values, non-empty)."""
+    actual_array = np.asarray(actual, dtype=float)
+    expected_array = np.asarray(expected, dtype=float)
+    if actual_array.size == 0 or actual_array.shape != expected_array.shape:
+        return False
+    limit = MATCH_ABS_TOLERANCE_KWH + MATCH_REL_TOLERANCE * np.abs(expected_array)
+    difference = np.abs(actual_array - expected_array)
+    return bool(np.all(np.isfinite(difference) & (difference <= limit)))
 
 
 @dataclass(frozen=True)

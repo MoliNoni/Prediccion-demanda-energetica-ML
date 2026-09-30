@@ -10,6 +10,10 @@ from database.schema import energy_predictions_table, models_table
 PredictionOrder = Literal["target_date", "created_desc"]
 
 
+class ModelAmbiguousError(RuntimeError):
+    """Raised when a model lookup matches more than one database row."""
+
+
 class ModelRepository:
     def create(
         self,
@@ -55,10 +59,22 @@ class ModelRepository:
         )
         return result.mappings().one_or_none()
 
-    def get_by_version(self, connection: Connection, version: str) -> dict[str, object] | None:
-        """Return the model with this version (versions are unique across the served models)."""
-        result = connection.execute(select(models_table).where(models_table.c.version == version))
-        return result.mappings().one_or_none()
+    def get_by_version(
+        self, connection: Connection, version: str, *, name: str
+    ) -> dict[str, object] | None:
+        """Return the model with this name and version; raise if several rows match."""
+        result = connection.execute(
+            select(models_table).where(
+                models_table.c.name == name,
+                models_table.c.version == version,
+            )
+        )
+        rows = result.mappings().all()
+        if len(rows) > 1:
+            raise ModelAmbiguousError(
+                f"Model {name} version {version} matches {len(rows)} database rows"
+            )
+        return rows[0] if rows else None
 
     def activate(self, connection: Connection, model_id: UUID) -> None:
         """Backward-compatible safe activation; use promotion semantics."""

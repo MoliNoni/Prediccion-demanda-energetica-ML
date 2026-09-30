@@ -11,6 +11,8 @@ from ingestion.constants import TARGET_COLUMN as DEMAND_COLUMN
 from models.ratio_target import (
     BASE_COLUMN,
     DATE_COLUMN,
+    MATCH_ABS_TOLERANCE_KWH,
+    MATCH_REL_TOLERANCE,
     RatioConfig,
     RatioTargetModel,
     base_demand,
@@ -20,6 +22,7 @@ from models.ratio_target import (
     decode_prediction,
     default_grid,
     encode_target,
+    matches_within_tolerance,
     prepare_frame,
     select_on_validation,
 )
@@ -139,6 +142,14 @@ def test_daily_series_rejects_duplicate_dates() -> None:
     frame = demand_frame(dates, np.array([1.0, 2.0, 3.0]))
 
     with pytest.raises(ValueError, match="duplicate"):
+        daily_series(frame, "Fecha", DEMAND_COLUMN)
+
+
+def test_daily_series_rejects_null_dates() -> None:
+    dates = pd.DatetimeIndex(["2020-01-01", pd.NaT, "2020-01-03"])
+    frame = demand_frame(dates, np.array([1.0, 2.0, 3.0]))
+
+    with pytest.raises(ValueError, match="null dates"):
         daily_series(frame, "Fecha", DEMAND_COLUMN)
 
 
@@ -284,3 +295,24 @@ def test_default_grid_is_the_declared_small_grid() -> None:
 
 def test_bias_is_negative_for_under_forecasts() -> None:
     assert bias_pct([100.0, 100.0], [90.0, 90.0]) == pytest.approx(-10.0)
+
+
+DEMAND_SCALE = 2e8  # kWh, the order of magnitude of the daily demand
+LIMIT = MATCH_ABS_TOLERANCE_KWH + MATCH_REL_TOLERANCE * DEMAND_SCALE
+
+
+def test_match_tolerance_accepts_a_difference_just_inside_the_limit() -> None:
+    assert matches_within_tolerance([DEMAND_SCALE + LIMIT * 0.99], [DEMAND_SCALE])
+    assert matches_within_tolerance([DEMAND_SCALE - LIMIT * 0.99], [DEMAND_SCALE])
+
+
+def test_match_tolerance_rejects_a_difference_just_outside_the_limit() -> None:
+    assert not matches_within_tolerance([DEMAND_SCALE + LIMIT * 1.01], [DEMAND_SCALE])
+    assert not matches_within_tolerance([DEMAND_SCALE - LIMIT * 1.01], [DEMAND_SCALE])
+
+
+def test_match_tolerance_rejects_non_finite_empty_and_mismatched_inputs() -> None:
+    assert not matches_within_tolerance([np.nan], [1.0])
+    assert not matches_within_tolerance([1.0], [np.inf])
+    assert not matches_within_tolerance([], [])
+    assert not matches_within_tolerance([1.0, 2.0], [1.0])

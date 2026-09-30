@@ -5,7 +5,6 @@ from models.serving_ratio import (
     MODEL_HORIZON_RATIO,
     MODEL_NAME_RATIO,
     MODEL_VERSION_RATIO,
-    RatioMlflowModelLoader,
     build_online_features_ratio,
 )
 from models.serving_registry import ServingModelRegistry
@@ -15,9 +14,10 @@ from models.serving_v2 import MODEL_HORIZON_V2, MODEL_NAME_V2, MODEL_VERSION_V2
 class Loader:
     def __init__(self, metadata: dict[str, object]) -> None:
         self.metadata = metadata
+        self.model = object()
 
     def load(self):
-        return object(), self.metadata
+        return self.model, self.metadata
 
 
 def metadata(name: str, version: str, horizon: int) -> dict[str, object]:
@@ -79,7 +79,6 @@ def test_registry_resolves_v1_2_0_to_the_ratio_loader_and_builder() -> None:
         {"name": MODEL_NAME_V2, "version": "1.2.0", "horizon": 1}
     )
 
-    assert loaded["model_version"] == "1.2.0"
+    assert model is loader.model
+    assert loaded is loader.metadata
     assert feature_builder is build_online_features_ratio
-    assert isinstance(RatioMlflowModelLoader(), RatioMlflowModelLoader)
-    assert MODEL_VERSION_RATIO == "1.2.0"

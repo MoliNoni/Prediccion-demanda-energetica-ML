@@ -6,7 +6,11 @@ import pytest
 from sqlalchemy import create_engine
 
 from application.prediction import ModelNotRegisteredError, PredictionService
-from database.repositories import EnergyPredictionRepository, ModelRepository
+from database.repositories import (
+    EnergyPredictionRepository,
+    ModelAmbiguousError,
+    ModelRepository,
+)
 from database.schema import metadata
 from ingestion.constants import EXPECTED_COLUMNS
 from ingestion.constants import TARGET_COLUMN as DEMAND_COLUMN
@@ -105,5 +109,52 @@ def test_prediction_with_an_unregistered_version_fails_clearly(connection, servi
 def test_get_by_version_returns_the_row_or_none(connection) -> None:
     _, inactive_id = register_models(connection)
 
-    assert ModelRepository().get_by_version(connection, "1.2.0")["id"] == inactive_id
-    assert ModelRepository().get_by_version(connection, "0.0.0") is None
+    models = ModelRepository()
+    assert models.get_by_version(connection, "1.2.0", name=NAME)["id"] == inactive_id
+    assert models.get_by_version(connection, "0.0.0", name=NAME) is None
+
+
+def test_get_by_version_selects_by_name_and_version(connection) -> None:
+    _, inactive_id = register_models(connection)
+    models = ModelRepository()
+    other_id = models.create(connection, name="OtherModel", version="1.2.0", horizon=1)
+
+    assert models.get_by_version(connection, "1.2.0", name=NAME)["id"] == inactive_id
+    assert models.get_by_version(connection, "1.2.0", name="OtherModel")["id"] == other_id
+    assert models.get_by_version(connection, "1.2.0", name="Missing") is None
+
+
+def test_prediction_ignores_a_same_version_model_with_another_name(connection, service) -> None:
+    ModelRepository().create(connection, name="OtherModel", version="1.2.0", horizon=1)
+    prediction_service, registry = service
+
+    with pytest.raises(ModelNotRegisteredError, match="1.2.0"):
+        prediction_service.predict(connection, TARGET, model_version="1.2.0")
+    assert registry.loaded_versions == []
+
+
+class AmbiguousConnection:
+    """Stands in for a database whose (name, version) uniqueness is not enforced."""
+
+    def execute(self, statement):
+        class Result:
+            def mappings(self):
+                return self
+
+            def all(self):
+                return [{"id": 1}, {"id": 2}]
+
+        return Result()
+
+
+def test_get_by_version_raises_a_domain_error_when_several_rows_match() -> None:
+    with pytest.raises(ModelAmbiguousError, match="2 database rows"):
+        ModelRepository().get_by_version(AmbiguousConnection(), "1.2.0", name=NAME)
+
+
+def test_prediction_with_an_ambiguous_version_raises_the_domain_error(service) -> None:
+    prediction_service, registry = service
+
+    with pytest.raises(ModelAmbiguousError):
+        prediction_service.predict(AmbiguousConnection(), TARGET, model_version="1.2.0")
+    assert registry.loaded_versions == []

@@ -5,8 +5,8 @@ from datetime import date
 from functools import partial
 
 from application.backfill import BackfillAbortedError, BackfillRangeError, backfill, date_range
-from application.prediction import PredictionService
-from database.repositories import ModelRepository
+from application.prediction import ModelNotRegisteredError, PredictionService, find_registered_model
+from database.repositories import ModelAmbiguousError
 from database.session import create_database_engine
 
 
@@ -51,14 +51,11 @@ def main(argv: list[str] | None = None) -> int:
         try:
             predict = PredictionService().predict
             if args.model_version is not None:
-                with engine.connect() as connection:
-                    registered = ModelRepository().get_by_version(connection, args.model_version)
-                if registered is None:
-                    print(
-                        f"Backfill setup failed: model version {args.model_version} "
-                        "is not registered",
-                        file=sys.stderr,
-                    )
+                try:
+                    with engine.connect() as connection:
+                        find_registered_model(connection, args.model_version)
+                except (ModelNotRegisteredError, ModelAmbiguousError) as error:
+                    print(f"Backfill setup failed: {error}", file=sys.stderr)
                     return 1
                 predict = partial(predict, model_version=args.model_version)
         except Exception as error:

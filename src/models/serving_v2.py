@@ -163,7 +163,12 @@ class CandidateMlflowModelLoaderV2:
                     model = mlflow.sklearn.load_model(metadata["model_uri"])
                     metadata["tracking_uri"] = tracking_uri
                     return model, metadata
-                except (TypeError, ValueError, mlflow.exceptions.MlflowException) as error:
+                except (
+                    OSError,
+                    TypeError,
+                    ValueError,
+                    mlflow.exceptions.MlflowException,
+                ) as error:
                     last_error = error
             raise CandidateServingArtifactUnavailableError(
                 "V2 serving artifact is unavailable"

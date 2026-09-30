@@ -14,6 +14,8 @@ from ingestion.constants import INTERIM_OUTPUT
 from ingestion.constants import TARGET_COLUMN as DEMAND_COLUMN
 from models.ratio_target import (
     DATE_COLUMN,
+    MATCH_ABS_TOLERANCE_KWH,
+    MATCH_REL_TOLERANCE,
     TARGET_COLUMN,
     TRAIN_YEARS,
     RatioConfig,
@@ -22,6 +24,7 @@ from models.ratio_target import (
     bias_pct,
     daily_series,
     default_grid,
+    matches_within_tolerance,
     prepare_frame,
     refit_on_train_and_validation,
     rows_in_years,
@@ -36,7 +39,6 @@ PREDICTIONS_OUTPUT = Path("data/processed/phase12_ratio_target_predictions.parqu
 CANDIDATE_DIRECTORY = Path("data/processed/candidates")
 TEST_YEARS = (2022, 2023)
 TEST_CALENDAR = (pd.Timestamp("2022-01-01"), pd.Timestamp("2023-12-31"))
-REPRODUCTION_TOLERANCE_KWH = 1e-6
 ACTUAL = "actual"
 V1_METHOD = "v1_1_0_absolute"
 CANDIDATE = "ratio_candidate"
@@ -188,13 +190,13 @@ def run(
     reproduced_on_test = reproduced.reindex(dates).to_numpy()
     if np.isnan(reproduced_on_test).any():
         raise ValueError("The v1.1.0 reproduction lacks predictions for some Test dates")
-    reproduction_max_abs_diff = float(np.abs(reproduced_on_test - test[V1_METHOD].to_numpy()).max())
-    if not np.isfinite(reproduction_max_abs_diff) or (
-        reproduction_max_abs_diff > REPRODUCTION_TOLERANCE_KWH
-    ):
+    stored_v1 = test[V1_METHOD].to_numpy()
+    reproduction_max_abs_diff = float(np.abs(reproduced_on_test - stored_v1).max())
+    if not matches_within_tolerance(reproduced_on_test, stored_v1):
         raise ValueError(
             "v1.1.0 reproduction does not match the stored predictions: max abs diff "
-            f"{reproduction_max_abs_diff} kWh (tolerance {REPRODUCTION_TOLERANCE_KWH})"
+            f"{reproduction_max_abs_diff} kWh (tolerance {MATCH_ABS_TOLERANCE_KWH} kWh "
+            f"+ {MATCH_REL_TOLERANCE} relative)"
         )
 
     output = {

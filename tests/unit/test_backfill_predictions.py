@@ -3,7 +3,11 @@ from contextlib import contextmanager
 from datetime import date, timedelta
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
 import pytest
+from sqlalchemy import create_engine, select
+from sqlalchemy.pool import StaticPool
 
 from application.backfill import (
     MAX_BACKFILL_DAYS,
@@ -13,7 +17,16 @@ from application.backfill import (
     backfill,
     date_range,
 )
-from application.prediction import InsufficientHistoryError, PredictionAlreadyExistsError
+from application.prediction import (
+    InsufficientHistoryError,
+    ModelNotRegisteredError,
+    PredictionAlreadyExistsError,
+    PredictionService,
+)
+from database.repositories import EnergyPredictionRepository, ModelAmbiguousError, ModelRepository
+from database.schema import energy_predictions_table, metadata
+from ingestion.constants import EXPECTED_COLUMNS
+from ingestion.constants import TARGET_COLUMN as DEMAND_COLUMN
 
 DAYS = [date(2023, 1, 1), date(2023, 1, 2), date(2023, 1, 3)]
 SCRIPT_PATH = Path(__file__).parents[2] / "scripts" / "backfill_predictions.py"
@@ -204,14 +217,6 @@ def test_cli_reports_aborted_backfill_and_disposes_engine(monkeypatch, capsys):
     assert engine.disposed
 
 
-class FakeModels:
-    def __init__(self, versions: set[str]) -> None:
-        self.versions = versions
-
-    def get_by_version(self, connection, version):
-        return {"version": version} if version in self.versions else None
-
-
 class ConnectableEngine(FakeEngine):
     def connect(self):
         @contextmanager
@@ -221,16 +226,40 @@ class ConnectableEngine(FakeEngine):
         return manager()
 
 
+def registry_raising(error: Exception):
+    def find(connection, version):
+        raise error
+
+    return find
+
+
 def test_cli_fails_when_the_requested_model_version_is_not_registered(monkeypatch, capsys):
     module = load_cli()
     engine = ConnectableEngine()
+    error = ModelNotRegisteredError("Model version 1.2.0 is not registered")
     monkeypatch.setattr(module, "create_database_engine", lambda: engine)
     monkeypatch.setattr(module, "PredictionService", lambda: type("S", (), {"predict": None})())
-    monkeypatch.setattr(module, "ModelRepository", lambda: FakeModels({"1.1.0"}))
+    monkeypatch.setattr(module, "find_registered_model", registry_raising(error))
     monkeypatch.setattr(module, "backfill", lambda *args: pytest.fail("must not backfill"))
 
     assert module.main([*ARGS, "--model-version", "1.2.0"]) == 1
     assert "1.2.0 is not registered" in capsys.readouterr().err
+    assert engine.disposed
+
+
+def test_cli_fails_clearly_when_the_requested_model_version_is_ambiguous(monkeypatch, capsys):
+    module = load_cli()
+    engine = ConnectableEngine()
+    error = ModelAmbiguousError("Model X version 1.2.0 matches 2 database rows")
+    monkeypatch.setattr(module, "create_database_engine", lambda: engine)
+    monkeypatch.setattr(module, "PredictionService", lambda: type("S", (), {"predict": None})())
+    monkeypatch.setattr(module, "find_registered_model", registry_raising(error))
+    monkeypatch.setattr(module, "backfill", lambda *args: pytest.fail("must not backfill"))
+
+    assert module.main([*ARGS, "--model-version", "1.2.0"]) == 1
+    err = capsys.readouterr().err
+    assert "matches 2 database rows" in err
+    assert "MultipleResultsFound" not in err
     assert engine.disposed
 
 
@@ -251,7 +280,7 @@ def test_cli_predicts_with_the_requested_registered_version(monkeypatch, capsys)
 
     monkeypatch.setattr(module, "create_database_engine", lambda: engine)
     monkeypatch.setattr(module, "PredictionService", FakeService)
-    monkeypatch.setattr(module, "ModelRepository", lambda: FakeModels({"1.2.0"}))
+    monkeypatch.setattr(module, "find_registered_model", lambda connection, version: {})
     monkeypatch.setattr(module, "backfill", fake_backfill)
 
     assert module.main([*ARGS, "--model-version", "1.2.0"]) == 0
@@ -274,8 +303,79 @@ def test_cli_without_a_version_predicts_with_the_active_model(monkeypatch):
 
     monkeypatch.setattr(module, "create_database_engine", lambda: engine)
     monkeypatch.setattr(module, "PredictionService", FakeService)
-    monkeypatch.setattr(module, "ModelRepository", lambda: pytest.fail("no version lookup"))
+    monkeypatch.setattr(
+        module, "find_registered_model", lambda *args: pytest.fail("no version lookup")
+    )
     monkeypatch.setattr(module, "backfill", fake_backfill)
 
     assert module.main(ARGS) == 0
     assert calls == [(date(2023, 1, 1), None)]
+
+
+MODEL_NAME = "HistGradientBoostingRegressor"
+
+
+class ConstantModel:
+    def predict(self, frame: pd.DataFrame) -> np.ndarray:
+        return np.full(len(frame), 200.0)
+
+
+class FakeRegistry:
+    def load(self, active_model):
+        return (
+            ConstantModel(),
+            {"predictor_columns": ["x"]},
+            lambda frame, target_date: pd.DataFrame({"x": [1.0]}),
+        )
+
+
+def test_version_backfill_creates_over_other_models_and_skips_the_same_model(tmp_path):
+    days = pd.date_range("2023-01-01", "2023-01-31", freq="D")
+    history = pd.DataFrame(0.0, index=range(len(days)), columns=list(EXPECTED_COLUMNS))
+    history["Fecha"] = days
+    history[DEMAND_COLUMN] = 150.0
+    history_path = tmp_path / "history.parquet"
+    history.to_parquet(history_path, index=False)
+    engine = create_engine(
+        "sqlite+pysqlite:///:memory:",
+        poolclass=StaticPool,
+        connect_args={"check_same_thread": False},
+    )
+    metadata.create_all(engine)
+    other_day, same_day, new_day = date(2023, 1, 10), date(2023, 1, 11), date(2023, 1, 12)
+    with engine.begin() as connection:
+        models = ModelRepository()
+        active_id = models.create(
+            connection, name=MODEL_NAME, version="1.1.0", horizon=1, is_active=True
+        )
+        target_id = models.create(connection, name=MODEL_NAME, version="1.2.0", horizon=1)
+        for day, model_id in ((other_day, active_id), (same_day, target_id)):
+            EnergyPredictionRepository().create(
+                connection,
+                target_date=day,
+                predicted_demand_kwh=1.0,
+                actual_demand_kwh=None,
+                model_id=model_id,
+            )
+    service = PredictionService(history_path=history_path, serving_registry=FakeRegistry())
+
+    result = backfill(
+        [other_day, same_day, new_day],
+        lambda connection, day: service.predict(connection, day, model_version="1.2.0"),
+        engine.begin,
+    )
+
+    assert (result.created, result.skipped_existing) == (2, 1)
+    assert result.skipped_dates == [same_day]
+    with engine.connect() as connection:
+        rows = connection.execute(
+            select(energy_predictions_table.c.target_date, energy_predictions_table.c.model_id)
+        ).all()
+    assert sorted((row.target_date, str(row.model_id)) for row in rows) == sorted(
+        [
+            (other_day, str(active_id)),
+            (other_day, str(target_id)),
+            (same_day, str(target_id)),
+            (new_day, str(target_id)),
+        ]
+    )
