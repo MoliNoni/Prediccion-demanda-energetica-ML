@@ -83,3 +83,6 @@ notes*.md
 
 # Generated Power BI downloads (copied from docs/powerbi by a prebuild script)
 frontend/public/powerbi/downloads/
+
+# Local, untracked candidate model binaries (Phase 12 experiment)
+data/processed/candidates/
