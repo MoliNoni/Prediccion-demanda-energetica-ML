@@ -56,6 +56,8 @@ const en = {
   recordCount: "stored records",
   contextEyebrow: "Forecast in context",
   contextTitle: "The forecast against the last 60 days",
+  contextTitleLatest: "Context of the latest forecast",
+  currentForecast: "Current forecast",
   contextTooltip:
     "Daily demand for the 60 days before the focused date, a 7-day moving average, the forecast for that date and any other stored forecasts inside the window.",
   contextEmpty: "Run a forecast to see it against the demand series.",
@@ -170,6 +172,8 @@ const es: Record<TranslationKey, string> = {
   recordCount: "registros almacenados",
   contextEyebrow: "Contexto de la predicción",
   contextTitle: "El pronóstico frente a los últimos 60 días",
+  contextTitleLatest: "Contexto de la última predicción",
+  currentForecast: "Predicción actual",
   contextTooltip:
     "Demanda diaria de los 60 días previos a la fecha seleccionada, su media móvil de 7 días, el pronóstico para esa fecha y otros pronósticos almacenados dentro de la ventana.",
   contextEmpty: "Genera un pronóstico para verlo sobre la serie de demanda.",

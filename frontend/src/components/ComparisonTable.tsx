@@ -3,6 +3,7 @@ import type { Resource } from "../hooks/useDashboard";
 import type { Translate } from "../i18n/translations";
 import { getAbsoluteError, getMatchWithActual } from "../lib/format";
 import type { Formatters } from "../lib/format";
+import { COMPARISON_ROWS, sortNewestFirst } from "../lib/predictions";
 import { InfoTip } from "./InfoTip";
 import { SkeletonRows } from "./Skeleton";
 
@@ -16,11 +17,9 @@ type ComparisonTableProps = {
   onFocus: (date: string) => void;
 };
 
-const ROWS = 8;
-
 export function ComparisonTable({ t, fmt, predictions, total, model, focusDate, onFocus }: ComparisonTableProps) {
   const loading = predictions.status === "loading";
-  const rows = predictions.data.slice(0, ROWS);
+  const rows = sortNewestFirst(predictions.data).slice(0, COMPARISON_ROWS);
   return (
     <div aria-busy={loading}>
       <div className="section-head">
@@ -50,7 +49,7 @@ export function ComparisonTable({ t, fmt, predictions, total, model, focusDate, 
           <tbody>
             {loading && <SkeletonRows rows={5} columns={6} />}
             {!loading &&
-              rows.map((item) => {
+              rows.map((item, index) => {
                 const absError = getAbsoluteError(item.actual_demand_kwh, item.predicted_demand_kwh);
                 const match = getMatchWithActual(item.actual_demand_kwh, item.predicted_demand_kwh);
                 const version = model && item.model_id === model.id ? `v${model.version}` : `${t("model")} ${item.model_id.slice(0, 8)}`;
@@ -66,6 +65,7 @@ export function ComparisonTable({ t, fmt, predictions, total, model, focusDate, 
                       >
                         {fmt.date(item.target_date)}
                       </button>
+                      {index === 0 && <span className="tag row-badge">{t("currentForecast")}</span>}
                     </td>
                     <td className="num">{fmt.kwh(item.predicted_demand_kwh)}</td>
                     <td className="num">{fmt.kwh(item.actual_demand_kwh)}</td>

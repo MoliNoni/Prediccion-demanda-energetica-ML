@@ -92,7 +92,7 @@ export function App() {
             <ComparisonTable
               t={t}
               fmt={fmt}
-              predictions={dashboard.predictions}
+              predictions={dashboard.newest}
               total={dashboard.totalStored}
               model={dashboard.model.data}
               focusDate={dashboard.focusDate}
@@ -108,6 +108,7 @@ export function App() {
             focusDate={dashboard.focusDate}
             context={dashboard.context}
             focusPrediction={dashboard.focusPrediction}
+            isLatest={dashboard.isLatestFocus}
           />
         </section>
 

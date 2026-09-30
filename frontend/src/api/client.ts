@@ -77,6 +77,12 @@ export const api = {
     return { items: [...earlier, ...responses.flatMap((response) => response.items)], total: first.total };
   },
 
+  /** The newest generated predictions, ordered by the server so old target dates cannot hide them. */
+  async newestPredictions(pageSize: number): Promise<Prediction[]> {
+    const query = `order=created_desc&page=1&page_size=${pageSize}`;
+    return (await request<ListResponse<Prediction>>(`/api/v1/predictions?${query}`)).items;
+  },
+
   async predictionsInRange(startDate: string, endDate: string): Promise<Prediction[]> {
     const query = `start_date=${startDate}&end_date=${endDate}&page=1&page_size=${MAX_PAGE_SIZE}`;
     return (await request<ListResponse<Prediction>>(`/api/v1/predictions?${query}`)).items;

@@ -4,6 +4,7 @@ import type { ActiveModel, Demand, Prediction } from "../api/client";
 import type { Translate } from "../i18n/translations";
 import { addDays, getDateValidationMessage, isWithinDataRange } from "../lib/format";
 import { WINDOW_DAYS } from "../lib/chart";
+import { COMPARISON_ROWS, latestGenerated } from "../lib/predictions";
 
 export type Health = "checking" | "online" | "offline";
 export type Resource<T> = { status: "loading" | "ready" | "error"; data: T };
@@ -16,18 +17,12 @@ function describeError(reason: unknown, t: Translate, fallback: "backendUnavaila
   return t(fallback);
 }
 
-function mostRecentlyStored(predictions: Prediction[]): Prediction | null {
-  return predictions.reduce<Prediction | null>(
-    (latest, item) => (latest === null || item.created_at > latest.created_at ? item : latest),
-    null,
-  );
-}
-
 /** Container hook: owns every request and exposes loading state per resource. */
 export function useDashboard(t: Translate) {
   const [health, setHealth] = useState<Health>("checking");
   const [model, setModel] = useState<Resource<ActiveModel | null>>({ status: "loading", data: null });
   const [predictions, setPredictions] = useState<Resource<Prediction[]>>({ status: "loading", data: [] });
+  const [newest, setNewest] = useState<Resource<Prediction[]>>({ status: "loading", data: [] });
   const [totalStored, setTotalStored] = useState(0);
   const [context, setContext] = useState<Resource<ContextData>>({
     status: "loading",
@@ -42,6 +37,10 @@ export function useDashboard(t: Translate) {
   const dateIssue = getDateValidationMessage(targetDate, t);
 
   const loadPredictions = useCallback(async () => {
+    api
+      .newestPredictions(COMPARISON_ROWS)
+      .then((items) => setNewest({ status: "ready", data: items }))
+      .catch(() => setNewest((previous) => ({ status: "error", data: previous.data })));
     try {
       const result = await api.recentPredictions();
       setPredictions({ status: "ready", data: [...result.items].sort((a, b) => b.target_date.localeCompare(a.target_date)) });
@@ -65,13 +64,13 @@ export function useDashboard(t: Translate) {
 
   const focusDate = useMemo<string | null>(() => {
     if (focusOverride) return focusOverride;
-    if (predictions.status === "loading") return null;
-    const stored = mostRecentlyStored(predictions.data);
+    if (newest.status === "loading") return null;
+    const stored = latestGenerated(newest.data);
     if (stored) return stored.target_date;
     return isWithinDataRange(targetDate) ? targetDate : null;
-  }, [focusOverride, predictions, targetDate]);
+  }, [focusOverride, newest, targetDate]);
 
-  const waitingForFocus = focusDate === null && predictions.status === "loading";
+  const waitingForFocus = focusDate === null && newest.status === "loading";
 
   useEffect(() => {
     if (focusDate === null) {
@@ -98,10 +97,16 @@ export function useDashboard(t: Translate) {
     if (latest?.target_date === focusDate) return latest;
     return (
       context.data.predictions.find((item) => item.target_date === focusDate) ??
+      newest.data.find((item) => item.target_date === focusDate) ??
       predictions.data.find((item) => item.target_date === focusDate) ??
       null
     );
-  }, [focusDate, latest, context.data.predictions, predictions.data]);
+  }, [focusDate, latest, context.data.predictions, newest.data, predictions.data]);
+
+  const isLatestFocus = useMemo(
+    () => focusPrediction !== null && focusPrediction.id === latestGenerated(newest.data)?.id,
+    [focusPrediction, newest.data],
+  );
 
   async function createPrediction() {
     if (dateIssue) {
@@ -131,6 +136,7 @@ export function useDashboard(t: Translate) {
     health,
     model,
     predictions,
+    newest,
     totalStored,
     context,
     targetDate,
@@ -139,6 +145,7 @@ export function useDashboard(t: Translate) {
     latest,
     focusDate,
     focusPrediction,
+    isLatestFocus,
     setFocusDate: setFocusOverride,
     submitting,
     notice,

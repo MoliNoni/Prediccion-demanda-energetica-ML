@@ -17,6 +17,8 @@ type PredictionContextChartProps = {
   focusDate: string | null;
   context: Resource<ContextData>;
   focusPrediction: Prediction | null;
+  /** True when the focused prediction is the most recently generated one. */
+  isLatest: boolean;
 };
 
 const MARGIN = { top: 16, right: 22, bottom: 30, left: 48 };
@@ -24,7 +26,7 @@ const TICK_EVERY_DAYS = 14;
 const TOOLTIP_WIDTH = 176;
 const GWH = 1e6;
 
-export function PredictionContextChart({ t, fmt, focusDate, context, focusPrediction }: PredictionContextChartProps) {
+export function PredictionContextChart({ t, fmt, focusDate, context, focusPrediction, isLatest }: PredictionContextChartProps) {
   const series = useMemo(
     () =>
       focusDate && context.status === "ready"
@@ -40,7 +42,7 @@ export function PredictionContextChart({ t, fmt, focusDate, context, focusPredic
       <div className="section-head">
         <div>
           <span className="eyebrow">{t("contextEyebrow")}</span>
-          <h2>{t("contextTitle")}</h2>
+          <h2>{t(isLatest ? "contextTitleLatest" : "contextTitle")}</h2>
         </div>
         <InfoTip text={t("contextTooltip")} label={t("moreInfo")} align="end" />
       </div>
