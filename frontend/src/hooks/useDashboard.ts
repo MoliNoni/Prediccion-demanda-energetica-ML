@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, api } from "../api/client";
 import type { ActiveModel, Demand, Prediction } from "../api/client";
 import type { Translate } from "../i18n/translations";
@@ -36,17 +36,27 @@ export function useDashboard(t: Translate) {
 
   const dateIssue = getDateValidationMessage(targetDate, t);
 
+  // Only the response to the most recent load may update state; older ones are dropped.
+  const loadSequence = useRef(0);
+
   const loadPredictions = useCallback(async () => {
+    const sequence = ++loadSequence.current;
+    const isCurrent = () => sequence === loadSequence.current;
     api
       .newestPredictions(COMPARISON_ROWS)
-      .then((items) => setNewest({ status: "ready", data: items }))
-      .catch(() => setNewest((previous) => ({ status: "error", data: previous.data })));
+      .then((items) => {
+        if (isCurrent()) setNewest({ status: "ready", data: items });
+      })
+      .catch(() => {
+        if (isCurrent()) setNewest((previous) => ({ status: "error", data: previous.data }));
+      });
     try {
       const result = await api.recentPredictions();
+      if (!isCurrent()) return;
       setPredictions({ status: "ready", data: [...result.items].sort((a, b) => b.target_date.localeCompare(a.target_date)) });
       setTotalStored(result.total);
     } catch {
-      setPredictions((previous) => ({ status: "error", data: previous.data }));
+      if (isCurrent()) setPredictions((previous) => ({ status: "error", data: previous.data }));
     }
   }, []);
 
@@ -62,15 +72,18 @@ export function useDashboard(t: Translate) {
     void loadPredictions();
   }, [loadPredictions]);
 
+  // Falls back to the target_date-loaded list when the newest-generated request failed.
+  const latestSource = newest.status === "error" ? predictions : newest;
+  const latestStored = useMemo(() => latestGenerated(latestSource.data), [latestSource]);
+
   const focusDate = useMemo<string | null>(() => {
     if (focusOverride) return focusOverride;
-    if (newest.status === "loading") return null;
-    const stored = latestGenerated(newest.data);
-    if (stored) return stored.target_date;
+    if (latestSource.status === "loading") return null;
+    if (latestStored) return latestStored.target_date;
     return isWithinDataRange(targetDate) ? targetDate : null;
-  }, [focusOverride, newest, targetDate]);
+  }, [focusOverride, latestSource, latestStored, targetDate]);
 
-  const waitingForFocus = focusDate === null && newest.status === "loading";
+  const waitingForFocus = focusDate === null && latestSource.status === "loading";
 
   useEffect(() => {
     if (focusDate === null) {
@@ -104,8 +117,8 @@ export function useDashboard(t: Translate) {
   }, [focusDate, latest, context.data.predictions, newest.data, predictions.data]);
 
   const isLatestFocus = useMemo(
-    () => focusPrediction !== null && focusPrediction.id === latestGenerated(newest.data)?.id,
-    [focusPrediction, newest.data],
+    () => focusPrediction !== null && focusPrediction.id === latestStored?.id,
+    [focusPrediction, latestStored],
   );
 
   async function createPrediction() {

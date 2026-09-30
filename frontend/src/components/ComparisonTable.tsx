@@ -75,7 +75,14 @@ export function ComparisonTable({ t, fmt, predictions, total, model, focusDate, 
                   </tr>
                 );
               })}
-            {!loading && !rows.length && (
+            {predictions.status === "error" && !rows.length && (
+              <tr>
+                <td colSpan={6} className="empty">
+                  {t("backendUnavailable")}
+                </td>
+              </tr>
+            )}
+            {!loading && predictions.status !== "error" && !rows.length && (
               <tr>
                 <td colSpan={6} className="empty">
                   {t("noStoredPredictions")}

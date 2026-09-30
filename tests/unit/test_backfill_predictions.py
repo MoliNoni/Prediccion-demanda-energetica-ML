@@ -9,6 +9,7 @@ from application.backfill import (
     MAX_BACKFILL_DAYS,
     BackfillAbortedError,
     BackfillRangeError,
+    BackfillResult,
     backfill,
     date_range,
 )
@@ -136,3 +137,68 @@ def test_cli_rejects_invalid_range(capsys):
 
     assert code == 2
     assert "Invalid range" in capsys.readouterr().err
+
+
+class FakeEngine:
+    def __init__(self) -> None:
+        self.disposed = False
+
+    def begin(self):
+        raise AssertionError("no transaction expected")
+
+    def dispose(self) -> None:
+        self.disposed = True
+
+
+ARGS = ["--start", "2023-01-01", "--end", "2023-01-02"]
+
+
+def test_cli_reports_engine_setup_failure(monkeypatch, capsys):
+    module = load_cli()
+
+    def broken_engine():
+        raise RuntimeError("DATABASE_URL missing")
+
+    monkeypatch.setattr(module, "create_database_engine", broken_engine)
+
+    assert module.main(ARGS) == 1
+    assert "setup failed" in capsys.readouterr().err
+
+
+def test_cli_reports_service_setup_failure_and_disposes_engine(monkeypatch, capsys):
+    module = load_cli()
+    engine = FakeEngine()
+
+    def broken_service():
+        raise RuntimeError("model artifact unavailable")
+
+    monkeypatch.setattr(module, "create_database_engine", lambda: engine)
+    monkeypatch.setattr(module, "PredictionService", broken_service)
+
+    assert module.main(ARGS) == 1
+    assert "setup failed" in capsys.readouterr().err
+    assert engine.disposed
+
+
+def test_cli_reports_aborted_backfill_and_disposes_engine(monkeypatch, capsys):
+    module = load_cli()
+    engine = FakeEngine()
+
+    class FakeService:
+        def predict(self, connection, target_date):
+            return {}
+
+    def aborting_backfill(dates, predict, connections):
+        raise BackfillAbortedError(date(2023, 1, 2), BackfillResult(created=1)) from ValueError(
+            "boom"
+        )
+
+    monkeypatch.setattr(module, "create_database_engine", lambda: engine)
+    monkeypatch.setattr(module, "PredictionService", FakeService)
+    monkeypatch.setattr(module, "backfill", aborting_backfill)
+
+    assert module.main(ARGS) == 1
+    err = capsys.readouterr().err
+    assert "2023-01-02" in err
+    assert "created=1" in err
+    assert engine.disposed

@@ -36,9 +36,18 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Dry run: {len(dates)} dates would be processed")
         return 0
 
-    engine = create_database_engine()
     try:
-        result = backfill(dates, PredictionService().predict, engine.begin)
+        engine = create_database_engine()
+    except Exception as error:
+        print(f"Backfill setup failed: {error!r}", file=sys.stderr)
+        return 1
+    try:
+        try:
+            predict = PredictionService().predict
+        except Exception as error:
+            print(f"Backfill setup failed: {error!r}", file=sys.stderr)
+            return 1
+        result = backfill(dates, predict, engine.begin)
     except BackfillAbortedError as error:
         print(
             f"Backfill failed on {error.target_date.isoformat()}: {error.__cause__!r}",
