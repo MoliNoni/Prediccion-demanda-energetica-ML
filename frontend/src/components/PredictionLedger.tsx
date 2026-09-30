@@ -56,7 +56,7 @@ export function PredictionLedger({ t, fmt, predictions, total, focusDate, onFocu
                       {fmt.date(item.target_date)}
                     </button>
                     <span className="badge-group">
-                      <SplitBadge t={t} targetDate={item.target_date} />
+                      <SplitBadge t={t} targetDate={item.target_date} modelVersion={item.model_version} />
                     </span>
                   </td>
                   <td className="num">{fmt.kwh(item.predicted_demand_kwh)}</td>

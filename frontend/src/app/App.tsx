@@ -73,6 +73,7 @@ export function App() {
               submitting={dashboard.submitting}
               latest={dashboard.latest}
               modelVersion={dashboard.model.data ? `v${dashboard.model.data.version}` : null}
+              activeVersion={dashboard.model.data?.version ?? null}
               onTargetDateChange={dashboard.setTargetDate}
               onSubmit={() => void dashboard.createPrediction()}
             />

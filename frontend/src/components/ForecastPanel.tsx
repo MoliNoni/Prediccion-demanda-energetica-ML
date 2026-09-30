@@ -1,5 +1,6 @@
 import type { Prediction } from "../api/client";
 import type { Translate } from "../i18n/translations";
+import { splitPeriodsFor } from "../lib/dataSplit";
 import { DATE_RANGE } from "../lib/format";
 import type { Formatters } from "../lib/format";
 import { InfoTip } from "./InfoTip";
@@ -13,6 +14,7 @@ type ForecastPanelProps = {
   submitting: boolean;
   latest: Prediction | null;
   modelVersion: string | null;
+  activeVersion: string | null;
   onTargetDateChange: (value: string) => void;
   onSubmit: () => void;
 };
@@ -25,10 +27,21 @@ export function ForecastPanel({
   submitting,
   latest,
   modelVersion,
+  activeVersion,
   onTargetDateChange,
   onSubmit,
 }: ForecastPanelProps) {
   const rangeText = `${t("availableFrom")} ${fmt.date(DATE_RANGE.min)} ${t("to")} ${fmt.date(DATE_RANGE.max)}`;
+  const periods = splitPeriodsFor(activeVersion);
+  const splitTip = t(periods.validationEnd === null ? "splitTipTwoWay" : "splitTipThreeWay", {
+    version: (activeVersion ?? "").replace(/^v/i, ""),
+    trainFrom: String(periods.trainStart),
+    trainTo: String(periods.trainEnd),
+    validationFrom: String(periods.trainEnd + 1),
+    validationTo: String(periods.validationEnd ?? periods.trainEnd),
+    testFrom: String(periods.testStart),
+    testTo: String(periods.testEnd),
+  });
   return (
     <div className="card card-data forecast-panel">
       <div className="card-head">
@@ -67,9 +80,12 @@ export function ForecastPanel({
         </p>
       </div>
 
-      <button type="button" className="btn btn-primary" onClick={onSubmit} disabled={submitting || !targetDate || Boolean(dateIssue)}>
-        {submitting ? t("calculating") : t("runForecast")}
-      </button>
+      <div className="action-row">
+        <button type="button" className="btn btn-primary" onClick={onSubmit} disabled={submitting || !targetDate || Boolean(dateIssue)}>
+          {submitting ? t("calculating") : t("runForecast")}
+        </button>
+        <InfoTip text={splitTip} label={t("moreInfo")} />
+      </div>
 
       {latest && (
         <div className="result" aria-live="polite">
@@ -79,9 +95,8 @@ export function ForecastPanel({
             {fmt.date(latest.target_date)} · {latest.model_version ? `v${latest.model_version}` : (modelVersion ?? t("model"))}
           </p>
           <p className="badge-group">
-            <SplitBadge t={t} targetDate={latest.target_date} />
+            <SplitBadge t={t} targetDate={latest.target_date} modelVersion={latest.model_version ?? activeVersion} />
           </p>
-          <p className="hint split-note">{t("splitNote")}</p>
         </div>
       )}
     </div>

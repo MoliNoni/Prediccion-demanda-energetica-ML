@@ -508,6 +508,25 @@ button {
   width: 100%;
 }
 
+.action-row {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Anchor the tooltip to the whole row so it never overflows the card on narrow screens. */
+.action-row .infotip {
+  position: static;
+}
+
+.action-row .infotip-body {
+  left: 0;
+  width: min(360px, 100%);
+}
+
 .field-label {
   display: flex;
   align-items: center;

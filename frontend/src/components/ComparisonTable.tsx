@@ -69,7 +69,7 @@ export function ComparisonTable({ t, fmt, predictions, total, model, focusDate, 
                       </button>
                       <span className="badge-group">
                         {index === 0 && <span className="tag row-badge">{t("currentForecast")}</span>}
-                        <SplitBadge t={t} targetDate={item.target_date} />
+                        <SplitBadge t={t} targetDate={item.target_date} modelVersion={item.model_version ?? (model && item.model_id === model.id ? model.version : undefined)} />
                       </span>
                     </td>
                     <td className="num">{fmt.kwh(item.predicted_demand_kwh)}</td>
