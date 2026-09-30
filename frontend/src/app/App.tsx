@@ -109,9 +109,6 @@ export function App() {
             focusDate={dashboard.focusDate}
             context={dashboard.context}
             focusPrediction={dashboard.focusPrediction}
-            candidates={dashboard.focusCandidates}
-            candidatesFailed={dashboard.focusCandidatesFailed}
-            activeModel={dashboard.model.data}
             isLatest={dashboard.isLatestFocus}
           />
         </section>

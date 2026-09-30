@@ -28,6 +28,9 @@ const PERIODS_BY_VERSION = new Map<string, SplitPeriods>([
   ["1.2.0", { ...SEALED_TEST, trainEnd: 2021, validationEnd: null }],
 ]);
 
+/** Model versions retired from the dashboard comparisons. */
+export const RETIRED_MODEL_VERSIONS = ["1.0.0"];
+
 /** Accepts "1.2.0" or "v1.2.0"; unknown or missing versions return null so no period is claimed for them. */
 export function splitPeriodsFor(modelVersion?: string | null): SplitPeriods | null {
   const version = (modelVersion ?? "").trim().replace(/^v/i, "");

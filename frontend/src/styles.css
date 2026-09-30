@@ -1055,41 +1055,6 @@ tr.is-focused td {
   padding: 0 14px;
 }
 
-.model-switcher {
-  margin-bottom: 16px;
-}
-
-.model-switcher-controls {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.model-switcher-controls:focus-visible {
-  outline: 2px solid var(--color-ember-orange);
-  outline-offset: 4px;
-}
-
-.model-switcher-name {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-width: 150px;
-  font-family: var(--font-polysans);
-  font-size: var(--text-subheading);
-}
-
-.model-arrow {
-  min-width: 40px;
-  padding: 4px 10px;
-}
-
-.model-active-tag {
-  background: var(--color-graphite);
-  color: var(--color-canvas-white);
-}
-
 /* Footer */
 .site-footer {
   padding-block: 40px;

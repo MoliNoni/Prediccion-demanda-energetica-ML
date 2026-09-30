@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
-import type { ActiveModel, Prediction } from "../api/client";
+import type { Prediction } from "../api/client";
 import type { ContextData, Resource } from "../hooks/useDashboard";
 import type { Translate } from "../i18n/translations";
 import { WINDOW_DAYS, buildBrokenPath, buildContextSeries, niceTicks } from "../lib/chart";
 import type { ContextSeries } from "../lib/chart";
 import { getRelativeError } from "../lib/format";
+import { RETIRED_MODEL_VERSIONS, splitPeriodsFor } from "../lib/dataSplit";
 import type { Formatters } from "../lib/format";
 import { addDays } from "../lib/format";
 import { InfoTip } from "./InfoTip";
@@ -17,11 +18,6 @@ type PredictionContextChartProps = {
   focusDate: string | null;
   context: Resource<ContextData>;
   focusPrediction: Prediction | null;
-  /** Every stored prediction for the focused date, one per model. */
-  candidates: Prediction[];
-  /** True when loading the per-date candidates failed, so a single option is not the real single-model case. */
-  candidatesFailed: boolean;
-  activeModel: ActiveModel | null;
   /** True when the focused prediction is the most recently generated one. */
   isLatest: boolean;
 };
@@ -31,61 +27,27 @@ const TICK_EVERY_DAYS = 14;
 const TOOLTIP_WIDTH = 176;
 const GWH = 1e6;
 
-/** Compares dotted versions numerically ("1.10.0" after "1.2.0"). */
-function compareVersions(a: string, b: string): number {
-  const left = a.split(".").map((part) => Number.parseInt(part, 10) || 0);
-  const right = b.split(".").map((part) => Number.parseInt(part, 10) || 0);
-  for (let index = 0; index < Math.max(left.length, right.length); index += 1) {
-    const diff = (left[index] ?? 0) - (right[index] ?? 0);
-    if (diff !== 0) return diff;
-  }
-  return 0;
+/** Only versions with a known split are compared, and retired ones are hidden. */
+function isShownModelVersion(version?: string | null): boolean {
+  const normalized = (version ?? "").trim().replace(/^v/i, "");
+  return splitPeriodsFor(normalized) !== null && !RETIRED_MODEL_VERSIONS.includes(normalized);
 }
 
-export function PredictionContextChart({
-  t,
-  fmt,
-  focusDate,
-  context,
-  focusPrediction,
-  candidates,
-  candidatesFailed,
-  activeModel,
-  isLatest,
-}: PredictionContextChartProps) {
-  // One prediction per model for the focused date, oldest version first. The default one is always included.
-  const options = useMemo(() => {
-    const byModel = new Map<string, Prediction>();
-    for (const item of [...candidates, ...(focusPrediction ? [focusPrediction] : [])]) {
-      if (focusDate && item.target_date !== focusDate) continue;
-      const known = byModel.get(item.model_id);
-      if (!known || item.created_at > known.created_at) byModel.set(item.model_id, item);
-    }
-    return [...byModel.values()].sort(
-      (a, b) => compareVersions(a.model_version ?? "", b.model_version ?? "") || a.created_at.localeCompare(b.created_at),
-    );
-  }, [candidates, focusPrediction, focusDate]);
-
-  const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
-  const defaultModelId = focusPrediction?.model_id ?? null;
-  useEffect(() => {
-    setSelectedModelId(null);
-  }, [focusDate, defaultModelId]);
-
-  const selected = options.find((item) => item.model_id === selectedModelId) ?? focusPrediction;
-  const isDefaultSelection = !selected || selected.model_id === defaultModelId;
-
-  // Stored markers in the window belong to the selected model only.
-  const windowPredictions = useMemo(
-    () => (selected ? context.data.predictions.filter((item) => item.model_id === selected.model_id) : context.data.predictions),
-    [context, selected],
+export function PredictionContextChart({ t, fmt, focusDate, context, focusPrediction, isLatest }: PredictionContextChartProps) {
+  // Stored markers are the forecasts of the other, non-retired models; the focused model's own are not drawn.
+  const otherModelPredictions = useMemo(
+    () =>
+      focusPrediction
+        ? context.data.predictions.filter((item) => item.model_id !== focusPrediction.model_id && isShownModelVersion(item.model_version))
+        : [],
+    [context, focusPrediction],
   );
   const series = useMemo(
     () =>
       focusDate && context.status === "ready"
-        ? buildContextSeries(focusDate, context.data.demand, windowPredictions, selected)
+        ? buildContextSeries(focusDate, context.data.demand, otherModelPredictions, focusPrediction)
         : null,
-    [focusDate, context, windowPredictions, selected],
+    [focusDate, context, otherModelPredictions, focusPrediction],
   );
   const hasActuals = series?.days.some((day) => day.actual !== null) ?? false;
   const loading = context.status === "loading";
@@ -96,24 +58,13 @@ export function PredictionContextChart({
         <div>
           <span className="eyebrow">{t("contextEyebrow")}</span>
           <h2>
-            {isDefaultSelection
-              ? t(isLatest ? "contextTitleLatest" : "contextTitle")
-              : t("contextTitleModel", { model: modelLabel(t, selected) })}
+            {isLatest && focusPrediction?.model_version
+              ? t("contextTitleLatest", { version: focusPrediction.model_version })
+              : t("contextTitle")}
           </h2>
         </div>
         <InfoTip text={t("contextTooltip")} label={t("moreInfo")} align="end" />
       </div>
-
-      {!loading && selected && (
-        <ModelSwitcher
-          t={t}
-          options={options}
-          selected={selected}
-          activeModelId={activeModel?.id ?? null}
-          candidatesFailed={candidatesFailed}
-          onSelect={setSelectedModelId}
-        />
-      )}
 
       <figure className="card card-data chart-card" aria-busy={loading}>
         {loading && <Skeleton variant="block" className="chart-skeleton" />}
@@ -123,85 +74,10 @@ export function PredictionContextChart({
         {series && hasActuals && <ChartBody t={t} fmt={fmt} series={series} />}
 
         {!loading && series && <StatRow t={t} fmt={fmt} series={series} />}
-        {!loading && !selected && context.status === "ready" && <p className="hint">{t("contextEmpty")}</p>}
-        {!loading && series && (
-          <figcaption id="context-caption" className="chart-caption">
-            {describeFocus(t, fmt, series)}
-          </figcaption>
-        )}
+        {!loading && !focusPrediction && context.status === "ready" && <p className="hint">{t("contextEmpty")}</p>}
       </figure>
     </div>
   );
-}
-
-function modelLabel(t: Translate, prediction: Prediction | null): string {
-  return prediction?.model_version ? t("modelVersionLabel", { version: prediction.model_version }) : t("model");
-}
-
-type ModelSwitcherProps = {
-  t: Translate;
-  options: Prediction[];
-  selected: Prediction;
-  activeModelId: string | null;
-  candidatesFailed: boolean;
-  onSelect: (modelId: string) => void;
-};
-
-function ModelSwitcher({ t, options, selected, activeModelId, candidatesFailed, onSelect }: ModelSwitcherProps) {
-  const index = Math.max(0, options.findIndex((item) => item.model_id === selected.model_id));
-  const single = options.length < 2;
-
-  function step(delta: number) {
-    if (single) return;
-    onSelect(options[(index + delta + options.length) % options.length].model_id);
-  }
-
-  function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-      event.preventDefault();
-      step(event.key === "ArrowLeft" ? -1 : 1);
-    }
-  }
-
-  return (
-    <div className="model-switcher">
-      <div className="model-switcher-controls" role="group" aria-label={t("modelSwitcherLabel")} tabIndex={0} onKeyDown={onKeyDown}>
-        <button type="button" className="btn btn-ghost model-arrow" aria-label={t("modelPrevious")} disabled={single} onClick={() => step(-1)}>
-          <span aria-hidden="true">&larr;</span>
-        </button>
-        <span className="model-switcher-name" aria-live="polite">
-          {modelLabel(t, selected)}
-          {selected.model_id === activeModelId && <span className="tag model-active-tag">{t("modelActiveTag")}</span>}
-          {!single && (
-            <span className="muted">
-              {index + 1}/{options.length}
-            </span>
-          )}
-        </span>
-        <button type="button" className="btn btn-ghost model-arrow" aria-label={t("modelNext")} disabled={single} onClick={() => step(1)}>
-          <span aria-hidden="true">&rarr;</span>
-        </button>
-      </div>
-      {single && (
-        <p className="hint" role={candidatesFailed ? "status" : undefined}>
-          {t(candidatesFailed ? "modelCandidatesError" : "modelSingleHint")}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function describeFocus(t: Translate, fmt: Formatters, series: ContextSeries): string {
-  const date = fmt.date(series.focusDate);
-  if (series.predictedAtFocus === null) return t("captionNoPrediction", { date });
-  const predicted = fmt.gwh(series.predictedAtFocus, 2);
-  if (series.actualAtFocus === null) return t("captionNoActual", { date, predicted });
-  return t("captionBoth", {
-    date,
-    predicted,
-    actual: fmt.gwh(series.actualAtFocus, 2),
-    error: fmt.percent(getRelativeError(series.actualAtFocus, series.predictedAtFocus)),
-  });
 }
 
 function StatRow({ t, fmt, series }: { t: Translate; fmt: Formatters; series: ContextSeries }) {
@@ -313,7 +189,6 @@ function ChartBody({ t, fmt, series }: { t: Translate; fmt: Formatters; series: 
         tabIndex={0}
         role="group"
         aria-label={`${t("chartLabel")}. ${t("chartKeyboardHint")}`}
-        aria-describedby="context-caption"
         onKeyDown={onKeyDown}
         onFocus={() => setActive((value) => value ?? WINDOW_DAYS)}
         onBlur={() => setActive(null)}
