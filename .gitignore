@@ -57,3 +57,26 @@ DESIGN.md
 
 # Power BI export output (regenerable)
 data/powerbi/
+
+# Workflow tracking, roadmaps, progress notes and agent instructions (local only, never versioned)
+odd/
+.atl/
+openspec/
+.claude/
+.cursor/
+.windsurf/
+.github/copilot-instructions.md
+CLAUDE.md
+AGENTS.md
+GEMINI.md
+*progress*.md
+*roadmap*.md
+*seguimiento*.md
+*avance*.md
+*-plan.md
+plan.md
+tasks.md
+TODO*.md
+todo*.md
+NOTES.md
+notes*.md
