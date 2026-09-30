@@ -16,6 +16,7 @@ const LABELS = {
 export function SplitBadge({ t, targetDate, modelVersion }: SplitBadgeProps) {
   const split = dataSplitFor(targetDate, modelVersion);
   const periods = splitPeriodsFor(modelVersion);
+  if (split === null || periods === null) return null;
   const range = {
     train: { from: periods.trainStart, to: periods.trainEnd },
     validation: { from: periods.trainEnd + 1, to: periods.validationEnd ?? periods.trainEnd },

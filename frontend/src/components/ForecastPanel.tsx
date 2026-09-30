@@ -33,7 +33,7 @@ export function ForecastPanel({
 }: ForecastPanelProps) {
   const rangeText = `${t("availableFrom")} ${fmt.date(DATE_RANGE.min)} ${t("to")} ${fmt.date(DATE_RANGE.max)}`;
   const periods = splitPeriodsFor(activeVersion);
-  const splitTip = t(periods.validationEnd === null ? "splitTipTwoWay" : "splitTipThreeWay", {
+  const splitTip = periods && t(periods.validationEnd === null ? "splitTipTwoWay" : "splitTipThreeWay", {
     version: (activeVersion ?? "").replace(/^v/i, ""),
     trainFrom: String(periods.trainStart),
     trainTo: String(periods.trainEnd),
@@ -84,7 +84,7 @@ export function ForecastPanel({
         <button type="button" className="btn btn-primary" onClick={onSubmit} disabled={submitting || !targetDate || Boolean(dateIssue)}>
           {submitting ? t("calculating") : t("runForecast")}
         </button>
-        <InfoTip text={splitTip} label={t("moreInfo")} />
+        {splitTip && <InfoTip text={splitTip} label={t("moreInfo")} />}
       </div>
 
       {latest && (
