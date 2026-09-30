@@ -202,3 +202,80 @@ def test_cli_reports_aborted_backfill_and_disposes_engine(monkeypatch, capsys):
     assert "2023-01-02" in err
     assert "created=1" in err
     assert engine.disposed
+
+
+class FakeModels:
+    def __init__(self, versions: set[str]) -> None:
+        self.versions = versions
+
+    def get_by_version(self, connection, version):
+        return {"version": version} if version in self.versions else None
+
+
+class ConnectableEngine(FakeEngine):
+    def connect(self):
+        @contextmanager
+        def manager():
+            yield object()
+
+        return manager()
+
+
+def test_cli_fails_when_the_requested_model_version_is_not_registered(monkeypatch, capsys):
+    module = load_cli()
+    engine = ConnectableEngine()
+    monkeypatch.setattr(module, "create_database_engine", lambda: engine)
+    monkeypatch.setattr(module, "PredictionService", lambda: type("S", (), {"predict": None})())
+    monkeypatch.setattr(module, "ModelRepository", lambda: FakeModels({"1.1.0"}))
+    monkeypatch.setattr(module, "backfill", lambda *args: pytest.fail("must not backfill"))
+
+    assert module.main([*ARGS, "--model-version", "1.2.0"]) == 1
+    assert "1.2.0 is not registered" in capsys.readouterr().err
+    assert engine.disposed
+
+
+def test_cli_predicts_with_the_requested_registered_version(monkeypatch, capsys):
+    module = load_cli()
+    engine = ConnectableEngine()
+    calls: list[tuple[date, str | None]] = []
+
+    class FakeService:
+        def predict(self, connection, target_date, model_version=None):
+            calls.append((target_date, model_version))
+            return {}
+
+    def fake_backfill(dates, predict, connections):
+        for target_date in dates:
+            predict(object(), target_date)
+        return BackfillResult(created=len(dates))
+
+    monkeypatch.setattr(module, "create_database_engine", lambda: engine)
+    monkeypatch.setattr(module, "PredictionService", FakeService)
+    monkeypatch.setattr(module, "ModelRepository", lambda: FakeModels({"1.2.0"}))
+    monkeypatch.setattr(module, "backfill", fake_backfill)
+
+    assert module.main([*ARGS, "--model-version", "1.2.0"]) == 0
+    assert calls == [(date(2023, 1, 1), "1.2.0"), (date(2023, 1, 2), "1.2.0")]
+
+
+def test_cli_without_a_version_predicts_with_the_active_model(monkeypatch):
+    module = load_cli()
+    engine = ConnectableEngine()
+    calls: list[tuple[date, str | None]] = []
+
+    class FakeService:
+        def predict(self, connection, target_date, model_version=None):
+            calls.append((target_date, model_version))
+            return {}
+
+    def fake_backfill(dates, predict, connections):
+        predict(object(), dates[0])
+        return BackfillResult(created=1)
+
+    monkeypatch.setattr(module, "create_database_engine", lambda: engine)
+    monkeypatch.setattr(module, "PredictionService", FakeService)
+    monkeypatch.setattr(module, "ModelRepository", lambda: pytest.fail("no version lookup"))
+    monkeypatch.setattr(module, "backfill", fake_backfill)
+
+    assert module.main(ARGS) == 0
+    assert calls == [(date(2023, 1, 1), None)]

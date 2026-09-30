@@ -38,6 +38,10 @@ class InsufficientHistoryError(PredictionDataUnavailableError):
     """Raised when the source cannot provide complete H+1 features."""
 
 
+class ModelNotRegisteredError(RuntimeError):
+    """Raised when a requested model version has no registered database row."""
+
+
 class PredictionService:
     def __init__(
         self,
@@ -49,13 +53,11 @@ class PredictionService:
         self.history_path = history_path
         self.serving_registry = serving_registry or ServingModelRegistry(v1_loader=model_loader)
 
-    def predict(self, connection: Connection, target_date: date) -> dict[str, Any]:
-        active_models = ModelRepository().get_active(connection)
-        if not active_models:
-            raise NoActiveModelError
-        if len(active_models) > 1:
-            raise MultipleActiveModelsError
-        active_model = active_models[0]
+    def predict(
+        self, connection: Connection, target_date: date, model_version: str | None = None
+    ) -> dict[str, Any]:
+        """Predict with the active model, or with the registered ``model_version`` if given."""
+        active_model = self._select_model(connection, model_version)
         model, metadata, feature_builder = self.serving_registry.load(active_model)
 
         frame = self._read_history()
@@ -86,6 +88,20 @@ class PredictionService:
             "model_version": active_model["version"],
             "horizon": active_model["horizon"],
         }
+
+    @staticmethod
+    def _select_model(connection: Connection, model_version: str | None) -> dict[str, object]:
+        if model_version is not None:
+            requested = ModelRepository().get_by_version(connection, model_version)
+            if requested is None:
+                raise ModelNotRegisteredError(f"Model version {model_version} is not registered")
+            return requested
+        active_models = ModelRepository().get_active(connection)
+        if not active_models:
+            raise NoActiveModelError
+        if len(active_models) > 1:
+            raise MultipleActiveModelsError
+        return active_models[0]
 
     def _read_history(self) -> pd.DataFrame:
         try:

@@ -2,9 +2,11 @@ import argparse
 import logging
 import sys
 from datetime import date
+from functools import partial
 
 from application.backfill import BackfillAbortedError, BackfillRangeError, backfill, date_range
 from application.prediction import PredictionService
+from database.repositories import ModelRepository
 from database.session import create_database_engine
 
 
@@ -20,6 +22,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--end", type=_parse_date, required=True, help="inclusive")
     parser.add_argument(
         "--dry-run", action="store_true", help="list the dates without touching the database"
+    )
+    parser.add_argument(
+        "--model-version",
+        help="predict with this registered model instead of the active one (e.g. 1.2.0)",
     )
     args = parser.parse_args(argv)
 
@@ -44,6 +50,17 @@ def main(argv: list[str] | None = None) -> int:
     try:
         try:
             predict = PredictionService().predict
+            if args.model_version is not None:
+                with engine.connect() as connection:
+                    registered = ModelRepository().get_by_version(connection, args.model_version)
+                if registered is None:
+                    print(
+                        f"Backfill setup failed: model version {args.model_version} "
+                        "is not registered",
+                        file=sys.stderr,
+                    )
+                    return 1
+                predict = partial(predict, model_version=args.model_version)
         except Exception as error:
             print(f"Backfill setup failed: {error!r}", file=sys.stderr)
             return 1

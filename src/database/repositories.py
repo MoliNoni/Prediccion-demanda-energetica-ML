@@ -55,6 +55,11 @@ class ModelRepository:
         )
         return result.mappings().one_or_none()
 
+    def get_by_version(self, connection: Connection, version: str) -> dict[str, object] | None:
+        """Return the model with this version (versions are unique across the served models)."""
+        result = connection.execute(select(models_table).where(models_table.c.version == version))
+        return result.mappings().one_or_none()
+
     def activate(self, connection: Connection, model_id: UUID) -> None:
         """Backward-compatible safe activation; use promotion semantics."""
         self.promote(connection, model_id)

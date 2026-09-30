@@ -5,18 +5,9 @@ from uuid import UUID
 
 from database.repositories import ModelRepository
 from database.session import create_database_engine
-from models.serving import MODEL_HORIZON, MODEL_NAME, MODEL_VERSION, MlflowModelLoader
-from models.serving_v2 import (
-    MODEL_HORIZON_V2,
-    MODEL_NAME_V2,
-    MODEL_VERSION_V2,
-    CandidateMlflowModelLoaderV2,
-)
+from models.serving_registry import SUPPORTED_SERVING_MODELS
 
-SUPPORTED_MODELS = {
-    MODEL_VERSION: (MODEL_NAME, MODEL_HORIZON, MlflowModelLoader),
-    MODEL_VERSION_V2: (MODEL_NAME_V2, MODEL_HORIZON_V2, CandidateMlflowModelLoaderV2),
-}
+SUPPORTED_MODELS = SUPPORTED_SERVING_MODELS
 
 
 def promote_serving_model(version: str, *, execute: bool = False) -> str:

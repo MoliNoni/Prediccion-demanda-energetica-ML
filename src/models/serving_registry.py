@@ -14,6 +14,13 @@ from models.serving import (
     MlflowModelLoader,
     ServingArtifactUnavailableError,
 )
+from models.serving_ratio import (
+    MODEL_HORIZON_RATIO,
+    MODEL_NAME_RATIO,
+    MODEL_VERSION_RATIO,
+    RatioMlflowModelLoader,
+    build_online_features_ratio,
+)
 from models.serving_v2 import (
     MODEL_HORIZON_V2,
     MODEL_NAME_V2,
@@ -25,6 +32,13 @@ from models.serving_v2 import (
 ModelIdentity = tuple[str, str, int]
 FeatureBuilder = Callable[[pd.DataFrame, date], pd.DataFrame]
 
+# version -> (name, horizon, loader type) for every model with an approved serving route.
+SUPPORTED_SERVING_MODELS: dict[str, tuple[str, int, type]] = {
+    MODEL_VERSION: (MODEL_NAME, MODEL_HORIZON, MlflowModelLoader),
+    MODEL_VERSION_V2: (MODEL_NAME_V2, MODEL_HORIZON_V2, CandidateMlflowModelLoaderV2),
+    MODEL_VERSION_RATIO: (MODEL_NAME_RATIO, MODEL_HORIZON_RATIO, RatioMlflowModelLoader),
+}
+
 
 class ServingModelRegistry:
     """Resolve the database-selected model to its artifact and feature contract."""
@@ -34,6 +48,7 @@ class ServingModelRegistry:
         *,
         v1_loader: MlflowModelLoader | None = None,
         v2_loader: CandidateMlflowModelLoaderV2 | None = None,
+        ratio_loader: RatioMlflowModelLoader | None = None,
     ) -> None:
         self._routes: dict[ModelIdentity, tuple[Any, FeatureBuilder]] = {
             (MODEL_NAME, MODEL_VERSION, MODEL_HORIZON): (
@@ -43,6 +58,10 @@ class ServingModelRegistry:
             (MODEL_NAME_V2, MODEL_VERSION_V2, MODEL_HORIZON_V2): (
                 v2_loader or CandidateMlflowModelLoaderV2(),
                 build_online_features_v2,
+            ),
+            (MODEL_NAME_RATIO, MODEL_VERSION_RATIO, MODEL_HORIZON_RATIO): (
+                ratio_loader or RatioMlflowModelLoader(),
+                build_online_features_ratio,
             ),
         }
 
