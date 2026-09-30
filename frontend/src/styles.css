@@ -969,15 +969,17 @@ tr.is-focused td {
   font-size: 14px;
 }
 
+/* Overlay the image area (same aspect ratio as the page images) so the arrows sit on its sides. */
 .pbi-variant {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  right: 8px;
+  top: 0;
+  left: 0;
+  right: 0;
+  aspect-ratio: 1600 / 918;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  padding: 0 10px;
   pointer-events: none;
 }
 
@@ -986,16 +988,33 @@ tr.is-focused td {
 }
 
 .pbi-variant .pbi-version {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
   background: var(--color-graphite);
   color: var(--color-canvas-white);
+  white-space: nowrap;
 }
 
 .pbi-arrow {
-  min-width: 40px;
-  padding: 4px 10px;
-  border: 1px solid var(--color-mist);
-  border-radius: var(--radius-tags);
-  background: rgba(255, 255, 255, 0.9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--color-graphite);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 2px 8px rgba(32, 32, 32, 0.18);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.pbi-arrow:hover {
+  border-color: var(--color-ember-orange);
+  color: var(--color-ember-orange);
 }
 
 .pbi-dialog-figure {
@@ -1007,9 +1026,9 @@ tr.is-focused td {
 }
 
 .pbi-variant-dialog {
-  top: 12px;
-  left: 12px;
-  right: 12px;
+  bottom: 0;
+  aspect-ratio: auto;
+  padding: 0 14px;
 }
 
 .model-switcher {
