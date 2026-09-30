@@ -19,6 +19,8 @@ type PredictionContextChartProps = {
   focusPrediction: Prediction | null;
   /** Every stored prediction for the focused date, one per model. */
   candidates: Prediction[];
+  /** True when loading the per-date candidates failed, so a single option is not the real single-model case. */
+  candidatesFailed: boolean;
   activeModel: ActiveModel | null;
   /** True when the focused prediction is the most recently generated one. */
   isLatest: boolean;
@@ -47,6 +49,7 @@ export function PredictionContextChart({
   context,
   focusPrediction,
   candidates,
+  candidatesFailed,
   activeModel,
   isLatest,
 }: PredictionContextChartProps) {
@@ -107,6 +110,7 @@ export function PredictionContextChart({
           options={options}
           selected={selected}
           activeModelId={activeModel?.id ?? null}
+          candidatesFailed={candidatesFailed}
           onSelect={setSelectedModelId}
         />
       )}
@@ -139,10 +143,11 @@ type ModelSwitcherProps = {
   options: Prediction[];
   selected: Prediction;
   activeModelId: string | null;
+  candidatesFailed: boolean;
   onSelect: (modelId: string) => void;
 };
 
-function ModelSwitcher({ t, options, selected, activeModelId, onSelect }: ModelSwitcherProps) {
+function ModelSwitcher({ t, options, selected, activeModelId, candidatesFailed, onSelect }: ModelSwitcherProps) {
   const index = Math.max(0, options.findIndex((item) => item.model_id === selected.model_id));
   const single = options.length < 2;
 
@@ -177,7 +182,11 @@ function ModelSwitcher({ t, options, selected, activeModelId, onSelect }: ModelS
           <span aria-hidden="true">&rarr;</span>
         </button>
       </div>
-      {single && <p className="hint">{t("modelSingleHint")}</p>}
+      {single && (
+        <p className="hint" role={candidatesFailed ? "status" : undefined}>
+          {t(candidatesFailed ? "modelCandidatesError" : "modelSingleHint")}
+        </p>
+      )}
     </div>
   );
 }

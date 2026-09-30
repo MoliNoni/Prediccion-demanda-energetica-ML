@@ -109,6 +109,7 @@ export function App() {
             context={dashboard.context}
             focusPrediction={dashboard.focusPrediction}
             candidates={dashboard.focusCandidates}
+            candidatesFailed={dashboard.focusCandidatesFailed}
             activeModel={dashboard.model.data}
             isLatest={dashboard.isLatestFocus}
           />

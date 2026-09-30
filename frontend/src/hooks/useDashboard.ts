@@ -29,6 +29,7 @@ export function useDashboard(t: Translate) {
     data: { demand: [], predictions: [] },
   });
   const [focusCandidates, setFocusCandidates] = useState<Prediction[]>([]);
+  const [focusCandidatesFailed, setFocusCandidatesFailed] = useState(false);
   const [targetDate, setTargetDate] = useState(DEFAULT_TARGET_DATE);
   const [latest, setLatest] = useState<Prediction | null>(null);
   const [focusOverride, setFocusOverride] = useState<string | null>(null);
@@ -109,6 +110,7 @@ export function useDashboard(t: Translate) {
   // Every model's prediction for the focused date, so the context chart can switch between them.
   useEffect(() => {
     setFocusCandidates([]);
+    setFocusCandidatesFailed(false);
     if (focusDate === null) return;
     let cancelled = false;
     api
@@ -117,7 +119,10 @@ export function useDashboard(t: Translate) {
         if (!cancelled) setFocusCandidates(items.filter((item) => item.target_date === focusDate));
       })
       .catch(() => {
-        if (!cancelled) setFocusCandidates([]);
+        if (!cancelled) {
+          setFocusCandidates([]);
+          setFocusCandidatesFailed(true);
+        }
       });
     return () => {
       cancelled = true;
@@ -178,6 +183,7 @@ export function useDashboard(t: Translate) {
     focusDate,
     focusPrediction,
     focusCandidates,
+    focusCandidatesFailed,
     isLatestFocus,
     setFocusDate: setFocusOverride,
     submitting,

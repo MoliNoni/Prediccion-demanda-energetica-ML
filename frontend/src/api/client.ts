@@ -24,6 +24,18 @@ export type ListResponse<T> = { items: T[]; page: number; page_size: number; tot
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
 const MAX_PAGE_SIZE = 100;
+const MAX_PAGES = 20;
+
+/** Pages needed for `total` items: a missing or invalid total is a single page; capped at MAX_PAGES. */
+function pageCount(total: unknown): number {
+  if (typeof total !== "number" || !Number.isFinite(total) || total < 1) return 1;
+  const pages = Math.ceil(total / MAX_PAGE_SIZE);
+  if (pages > MAX_PAGES) {
+    console.warn(`Predictions span ${pages} pages; only the first ${MAX_PAGES} are loaded.`);
+    return MAX_PAGES;
+  }
+  return pages;
+}
 
 /** status 0 means the request never reached the server. */
 export class ApiError extends Error {
@@ -66,7 +78,7 @@ export const api = {
   /** The API sorts ascending by target date, so the most recent items live on the last page. */
   async recentPredictions(): Promise<{ items: Prediction[]; total: number }> {
     const first = await request<ListResponse<Prediction>>(`/api/v1/predictions?page=1&page_size=${MAX_PAGE_SIZE}`);
-    const lastPage = Math.ceil(first.total / MAX_PAGE_SIZE);
+    const lastPage = pageCount(first.total);
     if (lastPage <= 1) return { items: first.items, total: first.total };
     // A short last page would leave the ledger nearly empty, so include the previous full page.
     const pages = lastPage === 2 ? [2] : [lastPage - 1, lastPage];
@@ -88,8 +100,9 @@ export const api = {
     const pageQuery = (page: number) =>
       `/api/v1/predictions?start_date=${startDate}&end_date=${endDate}&page=${page}&page_size=${MAX_PAGE_SIZE}`;
     const first = await request<ListResponse<Prediction>>(pageQuery(1));
-    const lastPage = Math.ceil(first.total / MAX_PAGE_SIZE);
+    const lastPage = pageCount(first.total);
     if (lastPage <= 1) return first.items;
+    // A rejected later page rejects the whole call so the caller's error path runs (no silent partial list).
     const rest = await Promise.all(
       Array.from({ length: lastPage - 1 }, (_, index) => request<ListResponse<Prediction>>(pageQuery(index + 2))),
     );
