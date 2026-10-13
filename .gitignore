@@ -50,8 +50,6 @@ desktop.ini
 *.swp
 *.swo
 
-# Temporary repository policy for the first GitHub setup
-README.md
 # Local design reference (not versioned)
 DESIGN.md
 
@@ -86,3 +84,6 @@ frontend/public/powerbi/downloads/
 
 # Local, untracked candidate model binaries (Phase 12 experiment)
 data/processed/candidates/
+
+# Database migrations (local only)
+migrations/
